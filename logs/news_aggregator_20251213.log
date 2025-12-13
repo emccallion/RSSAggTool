@@ -1,0 +1,251 @@
+2025-12-13 14:11:45,173 - __main__ - INFO - Starting news aggregation process...
+2025-12-13 14:11:45,173 - __main__ - INFO - Initializing components...
+2025-12-13 14:11:45,225 - __main__ - INFO - Parsing RSS feeds...
+2025-12-13 14:11:45,225 - feed_parser - INFO - Processing 6 feeds for Financial Times
+2025-12-13 14:11:45,225 - feed_parser - INFO - Parsing feed: https://www.ft.com/rss/home
+2025-12-13 14:11:47,792 - feed_parser - WARNING - HTTP 301 for feed https://www.ft.com/rss/home
+2025-12-13 14:11:48,793 - feed_parser - INFO - Parsing feed: https://www.ft.com/world?format=rss
+2025-12-13 14:11:51,300 - feed_parser - INFO - Parsing feed: https://www.ft.com/global-economy?format=rss
+2025-12-13 14:11:53,758 - feed_parser - INFO - Parsing feed: https://www.ft.com/companies?format=rss
+2025-12-13 14:11:56,166 - feed_parser - INFO - Parsing feed: https://www.ft.com/markets?format=rss
+2025-12-13 14:11:58,678 - feed_parser - INFO - Parsing feed: https://www.ft.com/climate-capital?format=rss
+2025-12-13 14:12:00,724 - feed_parser - INFO - Processing 2 feeds for Wall Street Journal
+2025-12-13 14:12:00,724 - feed_parser - INFO - Parsing feed: https://feeds.content.dowjones.io/public/rss/mw_topstories
+2025-12-13 14:12:02,666 - feed_parser - INFO - Parsing feed: https://feeds.content.dowjones.io/public/rss/RJO
+2025-12-13 14:12:03,810 - feed_parser - WARNING - HTTP 404 for feed https://feeds.content.dowjones.io/public/rss/RJO
+2025-12-13 14:12:04,810 - feed_parser - INFO - Processing 4 feeds for New York Times
+2025-12-13 14:12:04,811 - feed_parser - INFO - Parsing feed: https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml
+2025-12-13 14:12:05,963 - feed_parser - INFO - Parsing feed: https://rss.nytimes.com/services/xml/rss/nyt/Business.xml
+2025-12-13 14:12:08,833 - feed_parser - INFO - Parsing feed: https://rss.nytimes.com/services/xml/rss/nyt/Politics.xml
+2025-12-13 14:12:11,378 - feed_parser - INFO - Parsing feed: https://rss.nytimes.com/services/xml/rss/nyt/World.xml
+2025-12-13 14:12:13,649 - feed_parser - INFO - Processing 3 feeds for Bloomberg
+2025-12-13 14:12:13,650 - feed_parser - INFO - Parsing feed: https://feeds.bloomberg.com/businessweek/news.rss
+2025-12-13 14:12:15,876 - feed_parser - INFO - Parsing feed: https://feeds.bloomberg.com/politics/news.rss
+2025-12-13 14:12:18,424 - feed_parser - INFO - Parsing feed: https://feeds.bloomberg.com/economics/news.rss
+2025-12-13 14:12:20,472 - feed_parser - INFO - Processing 1 feeds for The Economist
+2025-12-13 14:12:20,473 - feed_parser - INFO - Parsing feed: https://www.economist.com/rss
+2025-12-13 14:12:20,780 - feed_parser - WARNING - HTTP 403 for feed https://www.economist.com/rss
+2025-12-13 14:12:21,781 - feed_parser - INFO - Processing 1 feeds for Australian Financial Review
+2025-12-13 14:12:21,782 - feed_parser - INFO - Parsing feed: https://www.afr.com/rss
+2025-12-13 14:12:22,179 - feed_parser - WARNING - HTTP 404 for feed https://www.afr.com/rss
+2025-12-13 14:12:23,180 - feed_parser - INFO - Processing 1 feeds for Foreign Affairs
+2025-12-13 14:12:23,180 - feed_parser - INFO - Parsing feed: https://www.foreignaffairs.com/rss
+2025-12-13 14:12:24,385 - feed_parser - WARNING - HTTP 404 for feed https://www.foreignaffairs.com/rss
+2025-12-13 14:12:25,385 - feed_parser - INFO - Total articles parsed: 360
+2025-12-13 14:12:25,386 - __main__ - INFO - Parsed 360 articles
+2025-12-13 14:12:25,386 - __main__ - INFO - Classifying articles...
+2025-12-13 14:12:25,410 - __main__ - INFO - Classified 10/360 articles
+2025-12-13 14:12:25,412 - __main__ - INFO - Classified 20/360 articles
+2025-12-13 14:12:25,414 - __main__ - INFO - Classified 30/360 articles
+2025-12-13 14:12:25,416 - __main__ - INFO - Classified 40/360 articles
+2025-12-13 14:12:25,418 - __main__ - INFO - Classified 50/360 articles
+2025-12-13 14:12:25,420 - __main__ - INFO - Classified 60/360 articles
+2025-12-13 14:12:25,422 - __main__ - INFO - Classified 70/360 articles
+2025-12-13 14:12:25,423 - __main__ - INFO - Classified 80/360 articles
+2025-12-13 14:12:25,426 - __main__ - INFO - Classified 90/360 articles
+2025-12-13 14:12:25,428 - __main__ - INFO - Classified 100/360 articles
+2025-12-13 14:12:25,430 - __main__ - INFO - Classified 110/360 articles
+2025-12-13 14:12:25,432 - __main__ - INFO - Classified 120/360 articles
+2025-12-13 14:12:25,434 - __main__ - INFO - Classified 130/360 articles
+2025-12-13 14:12:25,437 - __main__ - INFO - Classified 140/360 articles
+2025-12-13 14:12:25,440 - __main__ - INFO - Classified 150/360 articles
+2025-12-13 14:12:25,443 - __main__ - INFO - Classified 160/360 articles
+2025-12-13 14:12:25,445 - __main__ - INFO - Classified 170/360 articles
+2025-12-13 14:12:25,448 - __main__ - INFO - Classified 180/360 articles
+2025-12-13 14:12:25,450 - __main__ - INFO - Classified 190/360 articles
+2025-12-13 14:12:25,453 - __main__ - INFO - Classified 200/360 articles
+2025-12-13 14:12:25,455 - __main__ - INFO - Classified 210/360 articles
+2025-12-13 14:12:25,458 - __main__ - INFO - Classified 220/360 articles
+2025-12-13 14:12:25,460 - __main__ - INFO - Classified 230/360 articles
+2025-12-13 14:12:25,463 - __main__ - INFO - Classified 240/360 articles
+2025-12-13 14:12:25,466 - __main__ - INFO - Classified 250/360 articles
+2025-12-13 14:12:25,468 - __main__ - INFO - Classified 260/360 articles
+2025-12-13 14:12:25,471 - __main__ - INFO - Classified 270/360 articles
+2025-12-13 14:12:25,473 - __main__ - INFO - Classified 280/360 articles
+2025-12-13 14:12:25,475 - __main__ - INFO - Classified 290/360 articles
+2025-12-13 14:12:25,478 - __main__ - INFO - Classified 300/360 articles
+2025-12-13 14:12:25,481 - __main__ - INFO - Classified 310/360 articles
+2025-12-13 14:12:25,485 - __main__ - INFO - Classified 320/360 articles
+2025-12-13 14:12:25,490 - __main__ - INFO - Classified 330/360 articles
+2025-12-13 14:12:25,493 - __main__ - INFO - Classified 340/360 articles
+2025-12-13 14:12:25,496 - __main__ - INFO - Classified 350/360 articles
+2025-12-13 14:12:25,499 - __main__ - INFO - Classified 360/360 articles
+2025-12-13 14:12:25,499 - __main__ - INFO - Dry run complete - no articles saved to database
+2025-12-13 14:12:25,499 - __main__ - INFO - Sample article classifications:
+2025-12-13 14:12:25,499 - __main__ - INFO -   Article 1: Apollo took bearish software view with bets agains...
+2025-12-13 14:12:25,499 - __main__ - INFO -     Topics: [('Technology', 0.3076923076923077), ('Business', 0.13333333333333333), ('Economics', 0.125), ('Finance', 0.125)]
+2025-12-13 14:12:25,499 - __main__ - INFO -     Geographies: []
+2025-12-13 14:12:25,499 - __main__ - INFO -     Sentiment: neutral
+2025-12-13 14:12:25,499 - __main__ - INFO -   Article 2: The other kind of migrant...
+2025-12-13 14:12:25,499 - __main__ - INFO -     Topics: [('Geopolitics', 0.14285714285714285)]
+2025-12-13 14:12:25,499 - __main__ - INFO -     Geographies: []
+2025-12-13 14:12:25,499 - __main__ - INFO -     Sentiment: positive
+2025-12-13 14:12:25,499 - __main__ - INFO -   Article 3: Taxes take the shine off pubs’ festive narrative...
+2025-12-13 14:12:25,499 - __main__ - INFO -     Topics: [('Business', 0.13333333333333333)]
+2025-12-13 14:12:25,499 - __main__ - INFO -     Geographies: [('United States', 0.2727272727272727)]
+2025-12-13 14:12:25,499 - __main__ - INFO -     Sentiment: positive
+2025-12-13 14:12:25,499 - __main__ - INFO - News aggregation completed successfully!
+2025-12-13 14:12:33,658 - __main__ - INFO - Starting news aggregation process...
+2025-12-13 14:12:33,658 - __main__ - INFO - Initializing components...
+2025-12-13 14:12:33,670 - __main__ - INFO - Parsing RSS feeds...
+2025-12-13 14:12:33,670 - feed_parser - INFO - Processing 6 feeds for Financial Times
+2025-12-13 14:12:33,670 - feed_parser - INFO - Parsing feed: https://www.ft.com/rss/home
+2025-12-13 14:12:36,584 - feed_parser - WARNING - HTTP 301 for feed https://www.ft.com/rss/home
+2025-12-13 14:12:37,585 - feed_parser - INFO - Parsing feed: https://www.ft.com/world?format=rss
+2025-12-13 14:12:39,633 - feed_parser - INFO - Parsing feed: https://www.ft.com/global-economy?format=rss
+2025-12-13 14:12:42,095 - feed_parser - INFO - Parsing feed: https://www.ft.com/companies?format=rss
+2025-12-13 14:12:44,140 - feed_parser - INFO - Parsing feed: https://www.ft.com/markets?format=rss
+2025-12-13 14:12:46,186 - feed_parser - INFO - Parsing feed: https://www.ft.com/climate-capital?format=rss
+2025-12-13 14:12:48,749 - feed_parser - INFO - Processing 2 feeds for Wall Street Journal
+2025-12-13 14:12:48,749 - feed_parser - INFO - Parsing feed: https://feeds.content.dowjones.io/public/rss/mw_topstories
+2025-12-13 14:12:50,610 - feed_parser - INFO - Parsing feed: https://feeds.content.dowjones.io/public/rss/RJO
+2025-12-13 14:12:51,899 - feed_parser - WARNING - HTTP 404 for feed https://feeds.content.dowjones.io/public/rss/RJO
+2025-12-13 14:12:52,900 - feed_parser - INFO - Processing 4 feeds for New York Times
+2025-12-13 14:12:52,900 - feed_parser - INFO - Parsing feed: https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml
+2025-12-13 14:12:54,066 - feed_parser - INFO - Parsing feed: https://rss.nytimes.com/services/xml/rss/nyt/Business.xml
+2025-12-13 14:12:55,239 - feed_parser - INFO - Parsing feed: https://rss.nytimes.com/services/xml/rss/nyt/Politics.xml
+2025-12-13 14:12:56,394 - feed_parser - INFO - Parsing feed: https://rss.nytimes.com/services/xml/rss/nyt/World.xml
+2025-12-13 14:12:57,573 - feed_parser - INFO - Processing 3 feeds for Bloomberg
+2025-12-13 14:12:57,574 - feed_parser - INFO - Parsing feed: https://feeds.bloomberg.com/businessweek/news.rss
+2025-12-13 14:12:59,618 - feed_parser - INFO - Parsing feed: https://feeds.bloomberg.com/politics/news.rss
+2025-12-13 14:13:01,562 - feed_parser - INFO - Parsing feed: https://feeds.bloomberg.com/economics/news.rss
+2025-12-13 14:13:03,506 - feed_parser - INFO - Processing 1 feeds for The Economist
+2025-12-13 14:13:03,506 - feed_parser - INFO - Parsing feed: https://www.economist.com/rss
+2025-12-13 14:13:03,653 - feed_parser - WARNING - HTTP 403 for feed https://www.economist.com/rss
+2025-12-13 14:13:04,654 - feed_parser - INFO - Processing 1 feeds for Australian Financial Review
+2025-12-13 14:13:04,654 - feed_parser - INFO - Parsing feed: https://www.afr.com/rss
+2025-12-13 14:13:04,842 - feed_parser - WARNING - HTTP 404 for feed https://www.afr.com/rss
+2025-12-13 14:13:05,843 - feed_parser - INFO - Processing 1 feeds for Foreign Affairs
+2025-12-13 14:13:05,843 - feed_parser - INFO - Parsing feed: https://www.foreignaffairs.com/rss
+2025-12-13 14:13:06,233 - feed_parser - WARNING - HTTP 404 for feed https://www.foreignaffairs.com/rss
+2025-12-13 14:13:07,233 - feed_parser - INFO - Total articles parsed: 360
+2025-12-13 14:13:07,234 - __main__ - INFO - Parsed 360 articles
+2025-12-13 14:13:07,234 - __main__ - INFO - Classifying articles...
+2025-12-13 14:13:07,257 - __main__ - INFO - Classified 10/360 articles
+2025-12-13 14:13:07,259 - __main__ - INFO - Classified 20/360 articles
+2025-12-13 14:13:07,261 - __main__ - INFO - Classified 30/360 articles
+2025-12-13 14:13:07,263 - __main__ - INFO - Classified 40/360 articles
+2025-12-13 14:13:07,265 - __main__ - INFO - Classified 50/360 articles
+2025-12-13 14:13:07,267 - __main__ - INFO - Classified 60/360 articles
+2025-12-13 14:13:07,270 - __main__ - INFO - Classified 70/360 articles
+2025-12-13 14:13:07,272 - __main__ - INFO - Classified 80/360 articles
+2025-12-13 14:13:07,274 - __main__ - INFO - Classified 90/360 articles
+2025-12-13 14:13:07,276 - __main__ - INFO - Classified 100/360 articles
+2025-12-13 14:13:07,277 - __main__ - INFO - Classified 110/360 articles
+2025-12-13 14:13:07,279 - __main__ - INFO - Classified 120/360 articles
+2025-12-13 14:13:07,281 - __main__ - INFO - Classified 130/360 articles
+2025-12-13 14:13:07,284 - __main__ - INFO - Classified 140/360 articles
+2025-12-13 14:13:07,287 - __main__ - INFO - Classified 150/360 articles
+2025-12-13 14:13:07,290 - __main__ - INFO - Classified 160/360 articles
+2025-12-13 14:13:07,292 - __main__ - INFO - Classified 170/360 articles
+2025-12-13 14:13:07,294 - __main__ - INFO - Classified 180/360 articles
+2025-12-13 14:13:07,297 - __main__ - INFO - Classified 190/360 articles
+2025-12-13 14:13:07,299 - __main__ - INFO - Classified 200/360 articles
+2025-12-13 14:13:07,301 - __main__ - INFO - Classified 210/360 articles
+2025-12-13 14:13:07,304 - __main__ - INFO - Classified 220/360 articles
+2025-12-13 14:13:07,307 - __main__ - INFO - Classified 230/360 articles
+2025-12-13 14:13:07,310 - __main__ - INFO - Classified 240/360 articles
+2025-12-13 14:13:07,312 - __main__ - INFO - Classified 250/360 articles
+2025-12-13 14:13:07,315 - __main__ - INFO - Classified 260/360 articles
+2025-12-13 14:13:07,317 - __main__ - INFO - Classified 270/360 articles
+2025-12-13 14:13:07,320 - __main__ - INFO - Classified 280/360 articles
+2025-12-13 14:13:07,322 - __main__ - INFO - Classified 290/360 articles
+2025-12-13 14:13:07,325 - __main__ - INFO - Classified 300/360 articles
+2025-12-13 14:13:07,328 - __main__ - INFO - Classified 310/360 articles
+2025-12-13 14:13:07,332 - __main__ - INFO - Classified 320/360 articles
+2025-12-13 14:13:07,336 - __main__ - INFO - Classified 330/360 articles
+2025-12-13 14:13:07,340 - __main__ - INFO - Classified 340/360 articles
+2025-12-13 14:13:07,343 - __main__ - INFO - Classified 350/360 articles
+2025-12-13 14:13:07,346 - __main__ - INFO - Classified 360/360 articles
+2025-12-13 14:13:07,346 - __main__ - INFO - Saving articles to database...
+2025-12-13 14:13:08,583 - database - INFO - Inserted 360 new articles out of 360 total
+2025-12-13 14:13:08,584 - __main__ - INFO - Successfully inserted 360 new articles
+2025-12-13 14:13:08,584 - __main__ - INFO - Database now contains 305 total articles from 4 sources
+2025-12-13 14:13:08,585 - __main__ - INFO - Articles by source:
+2025-12-13 14:13:08,585 - __main__ - INFO -   Bloomberg: 70 articles
+2025-12-13 14:13:08,585 - __main__ - INFO -   Financial Times: 99 articles
+2025-12-13 14:13:08,585 - __main__ - INFO -   New York Times: 126 articles
+2025-12-13 14:13:08,586 - __main__ - INFO -   Wall Street Journal: 10 articles
+2025-12-13 14:13:08,586 - __main__ - INFO - News aggregation completed successfully!
+2025-12-13 14:15:38,681 - __main__ - INFO - Starting news aggregation process...
+2025-12-13 14:15:38,681 - __main__ - INFO - Initializing components...
+2025-12-13 14:15:38,693 - __main__ - INFO - Parsing RSS feeds...
+2025-12-13 14:15:38,693 - feed_parser - INFO - Processing 6 feeds for Financial Times
+2025-12-13 14:15:38,693 - feed_parser - INFO - Parsing feed: https://www.ft.com/rss/home
+2025-12-13 14:15:41,517 - feed_parser - WARNING - HTTP 301 for feed https://www.ft.com/rss/home
+2025-12-13 14:15:42,518 - feed_parser - INFO - Parsing feed: https://www.ft.com/world?format=rss
+2025-12-13 14:15:44,773 - feed_parser - INFO - Parsing feed: https://www.ft.com/global-economy?format=rss
+2025-12-13 14:15:47,230 - feed_parser - INFO - Parsing feed: https://www.ft.com/companies?format=rss
+2025-12-13 14:15:49,689 - feed_parser - INFO - Parsing feed: https://www.ft.com/markets?format=rss
+2025-12-13 14:15:51,941 - feed_parser - INFO - Parsing feed: https://www.ft.com/climate-capital?format=rss
+2025-12-13 14:15:53,989 - feed_parser - INFO - Processing 2 feeds for Wall Street Journal
+2025-12-13 14:15:53,990 - feed_parser - INFO - Parsing feed: https://feeds.content.dowjones.io/public/rss/mw_topstories
+2025-12-13 14:15:55,934 - feed_parser - INFO - Parsing feed: https://feeds.content.dowjones.io/public/rss/RJO
+2025-12-13 14:15:57,181 - feed_parser - WARNING - HTTP 404 for feed https://feeds.content.dowjones.io/public/rss/RJO
+2025-12-13 14:15:58,181 - feed_parser - INFO - Processing 4 feeds for New York Times
+2025-12-13 14:15:58,182 - feed_parser - INFO - Parsing feed: https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml
+2025-12-13 14:15:59,351 - feed_parser - INFO - Parsing feed: https://rss.nytimes.com/services/xml/rss/nyt/Business.xml
+2025-12-13 14:16:00,508 - feed_parser - INFO - Parsing feed: https://rss.nytimes.com/services/xml/rss/nyt/Politics.xml
+2025-12-13 14:16:01,686 - feed_parser - INFO - Parsing feed: https://rss.nytimes.com/services/xml/rss/nyt/World.xml
+2025-12-13 14:16:02,861 - feed_parser - INFO - Processing 3 feeds for Bloomberg
+2025-12-13 14:16:02,862 - feed_parser - INFO - Parsing feed: https://feeds.bloomberg.com/businessweek/news.rss
+2025-12-13 14:16:05,355 - feed_parser - INFO - Parsing feed: https://feeds.bloomberg.com/politics/news.rss
+2025-12-13 14:16:07,408 - feed_parser - INFO - Parsing feed: https://feeds.bloomberg.com/economics/news.rss
+2025-12-13 14:16:09,471 - feed_parser - INFO - Processing 1 feeds for The Economist
+2025-12-13 14:16:09,471 - feed_parser - INFO - Parsing feed: https://www.economist.com/rss
+2025-12-13 14:16:09,622 - feed_parser - WARNING - HTTP 403 for feed https://www.economist.com/rss
+2025-12-13 14:16:10,623 - feed_parser - INFO - Processing 1 feeds for Australian Financial Review
+2025-12-13 14:16:10,623 - feed_parser - INFO - Parsing feed: https://www.afr.com/rss
+2025-12-13 14:16:10,828 - feed_parser - WARNING - HTTP 404 for feed https://www.afr.com/rss
+2025-12-13 14:16:11,828 - feed_parser - INFO - Processing 1 feeds for Foreign Affairs
+2025-12-13 14:16:11,829 - feed_parser - INFO - Parsing feed: https://www.foreignaffairs.com/rss
+2025-12-13 14:16:12,949 - feed_parser - WARNING - HTTP 404 for feed https://www.foreignaffairs.com/rss
+2025-12-13 14:16:13,950 - feed_parser - INFO - Total articles parsed: 360
+2025-12-13 14:16:13,950 - __main__ - INFO - Parsed 360 articles
+2025-12-13 14:16:13,951 - __main__ - INFO - Classifying articles...
+2025-12-13 14:16:13,982 - __main__ - INFO - Classified 10/360 articles
+2025-12-13 14:16:13,984 - __main__ - INFO - Classified 20/360 articles
+2025-12-13 14:16:13,986 - __main__ - INFO - Classified 30/360 articles
+2025-12-13 14:16:13,988 - __main__ - INFO - Classified 40/360 articles
+2025-12-13 14:16:13,990 - __main__ - INFO - Classified 50/360 articles
+2025-12-13 14:16:13,993 - __main__ - INFO - Classified 60/360 articles
+2025-12-13 14:16:13,995 - __main__ - INFO - Classified 70/360 articles
+2025-12-13 14:16:13,997 - __main__ - INFO - Classified 80/360 articles
+2025-12-13 14:16:13,999 - __main__ - INFO - Classified 90/360 articles
+2025-12-13 14:16:14,001 - __main__ - INFO - Classified 100/360 articles
+2025-12-13 14:16:14,002 - __main__ - INFO - Classified 110/360 articles
+2025-12-13 14:16:14,004 - __main__ - INFO - Classified 120/360 articles
+2025-12-13 14:16:14,007 - __main__ - INFO - Classified 130/360 articles
+2025-12-13 14:16:14,009 - __main__ - INFO - Classified 140/360 articles
+2025-12-13 14:16:14,012 - __main__ - INFO - Classified 150/360 articles
+2025-12-13 14:16:14,015 - __main__ - INFO - Classified 160/360 articles
+2025-12-13 14:16:14,018 - __main__ - INFO - Classified 170/360 articles
+2025-12-13 14:16:14,020 - __main__ - INFO - Classified 180/360 articles
+2025-12-13 14:16:14,023 - __main__ - INFO - Classified 190/360 articles
+2025-12-13 14:16:14,025 - __main__ - INFO - Classified 200/360 articles
+2025-12-13 14:16:14,028 - __main__ - INFO - Classified 210/360 articles
+2025-12-13 14:16:14,031 - __main__ - INFO - Classified 220/360 articles
+2025-12-13 14:16:14,033 - __main__ - INFO - Classified 230/360 articles
+2025-12-13 14:16:14,036 - __main__ - INFO - Classified 240/360 articles
+2025-12-13 14:16:14,039 - __main__ - INFO - Classified 250/360 articles
+2025-12-13 14:16:14,041 - __main__ - INFO - Classified 260/360 articles
+2025-12-13 14:16:14,044 - __main__ - INFO - Classified 270/360 articles
+2025-12-13 14:16:14,047 - __main__ - INFO - Classified 280/360 articles
+2025-12-13 14:16:14,049 - __main__ - INFO - Classified 290/360 articles
+2025-12-13 14:16:14,052 - __main__ - INFO - Classified 300/360 articles
+2025-12-13 14:16:14,055 - __main__ - INFO - Classified 310/360 articles
+2025-12-13 14:16:14,059 - __main__ - INFO - Classified 320/360 articles
+2025-12-13 14:16:14,064 - __main__ - INFO - Classified 330/360 articles
+2025-12-13 14:16:14,067 - __main__ - INFO - Classified 340/360 articles
+2025-12-13 14:16:14,070 - __main__ - INFO - Classified 350/360 articles
+2025-12-13 14:16:14,073 - __main__ - INFO - Classified 360/360 articles
+2025-12-13 14:16:14,073 - __main__ - INFO - Saving articles to database...
+2025-12-13 14:16:15,329 - database - INFO - Inserted 360 new articles out of 360 total
+2025-12-13 14:16:15,329 - __main__ - INFO - Successfully inserted 360 new articles
+2025-12-13 14:16:15,329 - __main__ - INFO - Database now contains 305 total articles from 4 sources
+2025-12-13 14:16:15,329 - __main__ - INFO - Articles by source:
+2025-12-13 14:16:15,330 - __main__ - INFO -   Bloomberg: 70 articles
+2025-12-13 14:16:15,330 - __main__ - INFO -   Financial Times: 99 articles
+2025-12-13 14:16:15,330 - __main__ - INFO -   New York Times: 126 articles
+2025-12-13 14:16:15,330 - __main__ - INFO -   Wall Street Journal: 10 articles
+2025-12-13 14:16:15,330 - __main__ - INFO - News aggregation completed successfully!

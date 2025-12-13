@@ -1,0 +1,64 @@
+sources:
+  financial_times:
+    name: "Financial Times"
+    feeds:
+      - url: "https://www.ft.com/rss/home"
+        category: "general"
+      - url: "https://www.ft.com/world?format=rss"
+        category: "world"
+      - url: "https://www.ft.com/global-economy?format=rss"
+        category: "economics"
+      - url: "https://www.ft.com/companies?format=rss"
+        category: "business"
+      - url: "https://www.ft.com/markets?format=rss"
+        category: "markets"
+      - url: "https://www.ft.com/climate-capital?format=rss"
+        category: "climate"
+
+  wall_street_journal:
+    name: "Wall Street Journal"
+    feeds:
+      - url: "https://feeds.content.dowjones.io/public/rss/mw_topstories"
+        category: "general"
+      - url: "https://feeds.content.dowjones.io/public/rss/RJO"
+        category: "world"
+
+  new_york_times:
+    name: "New York Times"
+    feeds:
+      - url: "https://rss.nytimes.com/services/xml/rss/nyt/HomePage.xml"
+        category: "general"
+      - url: "https://rss.nytimes.com/services/xml/rss/nyt/Business.xml"
+        category: "business"
+      - url: "https://rss.nytimes.com/services/xml/rss/nyt/Politics.xml"
+        category: "politics"
+      - url: "https://rss.nytimes.com/services/xml/rss/nyt/World.xml"
+        category: "world"
+
+  bloomberg:
+    name: "Bloomberg"
+    feeds:
+      - url: "https://feeds.bloomberg.com/businessweek/news.rss"
+        category: "business"
+      - url: "https://feeds.bloomberg.com/politics/news.rss"
+        category: "politics"
+      - url: "https://feeds.bloomberg.com/economics/news.rss"
+        category: "economics"
+
+  economist:
+    name: "The Economist"
+    feeds:
+      - url: "https://www.economist.com/rss"
+        category: "general"
+
+  australian_financial_review:
+    name: "Australian Financial Review"
+    feeds:
+      - url: "https://www.afr.com/rss"
+        category: "general"
+
+  foreign_affairs:
+    name: "Foreign Affairs"
+    feeds:
+      - url: "https://www.foreignaffairs.com/rss"
+        category: "geopolitics"
