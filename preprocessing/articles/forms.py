@@ -47,6 +47,24 @@ class ArticleFilterForm(forms.Form):
         })
     )
 
+    sort = forms.ChoiceField(
+        required=False,
+        choices=[
+            ('-time_added', 'Newest First'),
+            ('time_added', 'Oldest First'),
+            ('-published', 'Published (Newest)'),
+            ('published', 'Published (Oldest)'),
+            ('title', 'Title (A-Z)'),
+            ('-title', 'Title (Z-A)'),
+            ('source', 'Source (A-Z)'),
+            ('-source', 'Source (Z-A)'),
+            ('outcome', 'Status (A-Z)'),
+            ('-outcome', 'Status (Z-A)'),
+        ],
+        initial='-time_added',
+        widget=forms.Select(attrs={'class': 'form-control form-control-sm'})
+    )
+
 
 class ArticleEditForm(forms.ModelForm):
     """Form for editing preprocessing article fields."""

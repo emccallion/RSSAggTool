@@ -43,35 +43,48 @@
             </div>
         </div>
 
-        <!-- Filters -->
+        <!-- Filters & Sort -->
         <div class="card mb-3">
             <div class="card-body">
-                <h5 class="card-title">Filters</h5>
-                <form method="get" class="row g-3">
-                    <div class="col-md-2">
-                        {{ filter_form.outcome.label_tag }}
-                        {{ filter_form.outcome }}
+                <h5 class="card-title">Filters & Sort</h5>
+                <form method="get">
+                    <div class="row g-3">
+                        <div class="col-md-2">
+                            {{ filter_form.outcome.label_tag }}
+                            {{ filter_form.outcome }}
+                        </div>
+                        <div class="col-md-2">
+                            {{ filter_form.source.label_tag }}
+                            {{ filter_form.source }}
+                        </div>
+                        <div class="col-md-2">
+                            {{ filter_form.storygroup.label_tag }}
+                            {{ filter_form.storygroup }}
+                        </div>
+                        <div class="col-md-2">
+                            {{ filter_form.added_by.label_tag }}
+                            {{ filter_form.added_by }}
+                        </div>
+                        <div class="col-md-4">
+                            {{ filter_form.search.label_tag }}
+                            {{ filter_form.search }}
+                        </div>
                     </div>
-                    <div class="col-md-2">
-                        {{ filter_form.source.label_tag }}
-                        {{ filter_form.source }}
-                    </div>
-                    <div class="col-md-2">
-                        {{ filter_form.storygroup.label_tag }}
-                        {{ filter_form.storygroup }}
-                    </div>
-                    <div class="col-md-3">
-                        {{ filter_form.search.label_tag }}
-                        {{ filter_form.search }}
-                    </div>
-                    <div class="col-md-2">
-                        {{ filter_form.added_by.label_tag }}
-                        {{ filter_form.added_by }}
-                    </div>
-                    <div class="col-md-1 d-flex align-items-end">
-                        <button type="submit" class="btn btn-primary w-100">
-                            <i class="bi bi-funnel"></i> Filter
-                        </button>
+                    <div class="row g-3 mt-1">
+                        <div class="col-md-3">
+                            <label for="{{ filter_form.sort.id_for_label }}" class="form-label">Sort By</label>
+                            {{ filter_form.sort }}
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="submit" class="btn btn-primary w-100">
+                                <i class="bi bi-funnel"></i> Apply
+                            </button>
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <a href="{% url 'article_list' %}" class="btn btn-secondary w-100">
+                                <i class="bi bi-x-circle"></i> Clear
+                            </a>
+                        </div>
                     </div>
                 </form>
             </div>
