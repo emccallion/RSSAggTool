@@ -1,0 +1,233 @@
+{% extends 'articles/base.html' %}
+
+{% block title %}Article List - News Preprocessing{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2>Preprocessing Articles</h2>
+
+        <!-- Statistics -->
+        <div class="row mb-3">
+            <div class="col-md-3">
+                <div class="card text-center">
+                    <div class="card-body">
+                        <h5 class="card-title">{{ stats.total }}</h5>
+                        <p class="card-text">Total Articles</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center border-primary">
+                    <div class="card-body">
+                        <h5 class="card-title text-primary">{{ stats.new }}</h5>
+                        <p class="card-text">New</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center border-success">
+                    <div class="card-body">
+                        <h5 class="card-title text-success">{{ stats.processed }}</h5>
+                        <p class="card-text">Processed</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-3">
+                <div class="card text-center border-danger">
+                    <div class="card-body">
+                        <h5 class="card-title text-danger">{{ stats.rejected }}</h5>
+                        <p class="card-text">Rejected</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Filters -->
+        <div class="card mb-3">
+            <div class="card-body">
+                <h5 class="card-title">Filters</h5>
+                <form method="get" class="row g-3">
+                    <div class="col-md-2">
+                        {{ filter_form.outcome.label_tag }}
+                        {{ filter_form.outcome }}
+                    </div>
+                    <div class="col-md-2">
+                        {{ filter_form.source.label_tag }}
+                        {{ filter_form.source }}
+                    </div>
+                    <div class="col-md-2">
+                        {{ filter_form.storygroup.label_tag }}
+                        {{ filter_form.storygroup }}
+                    </div>
+                    <div class="col-md-3">
+                        {{ filter_form.search.label_tag }}
+                        {{ filter_form.search }}
+                    </div>
+                    <div class="col-md-2">
+                        {{ filter_form.added_by.label_tag }}
+                        {{ filter_form.added_by }}
+                    </div>
+                    <div class="col-md-1 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary w-100">
+                            <i class="bi bi-funnel"></i> Filter
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Bulk Actions -->
+        <form method="post" id="bulk-action-form">
+            {% csrf_token %}
+            <div class="card mb-3">
+                <div class="card-body">
+                    <div class="row g-2">
+                        <div class="col-md-3">
+                            {{ bulk_form.action }}
+                        </div>
+                        <div class="col-md-3">
+                            {{ bulk_form.storygroup }}
+                        </div>
+                        <div class="col-md-3">
+                            {{ bulk_form.modified_by }}
+                        </div>
+                        <div class="col-md-3">
+                            <button type="submit" class="btn btn-success w-100" id="apply-bulk-action">
+                                <i class="bi bi-check2-all"></i> Apply to Selected
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Article Table -->
+            <div class="table-responsive">
+                <table class="table table-striped table-hover">
+                    <thead class="table-dark">
+                        <tr>
+                            <th><input type="checkbox" id="select-all"></th>
+                            <th>Status</th>
+                            <th>Title</th>
+                            <th>Source</th>
+                            <th>Story Group</th>
+                            <th>Published</th>
+                            <th>Added By</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for article in articles %}
+                        <tr>
+                            <td>
+                                <input type="checkbox" name="selected_articles" value="{{ article.id }}" class="article-checkbox">
+                            </td>
+                            <td>
+                                <span class="badge {{ article.outcome_badge_class }}">
+                                    {{ article.get_outcome_display }}
+                                </span>
+                            </td>
+                            <td>
+                                <a href="{% url 'article_detail' article.id %}">
+                                    {{ article.title|truncatewords:15 }}
+                                </a>
+                            </td>
+                            <td>{{ article.source }}</td>
+                            <td>
+                                {% if article.storygroup %}
+                                    <span class="badge bg-info">{{ article.storygroup }}</span>
+                                {% else %}
+                                    <span class="text-muted">-</span>
+                                {% endif %}
+                            </td>
+                            <td>{{ article.published|date:"Y-m-d H:i" }}</td>
+                            <td>{{ article.added_by }}</td>
+                            <td>
+                                <a href="{% url 'article_detail' article.id %}" class="btn btn-sm btn-primary">
+                                    <i class="bi bi-eye"></i> View
+                                </a>
+                            </td>
+                        </tr>
+                        {% empty %}
+                        <tr>
+                            <td colspan="8" class="text-center">No articles found.</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+        </form>
+
+        <!-- Pagination -->
+        {% if is_paginated %}
+        <nav>
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                            &laquo; First
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                            Previous
+                        </a>
+                    </li>
+                {% endif %}
+
+                <li class="page-item active">
+                    <span class="page-link">
+                        Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}
+                    </span>
+                </li>
+
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                            Next
+                        </a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}{% for key, value in request.GET.items %}{% if key != 'page' %}&{{ key }}={{ value }}{% endif %}{% endfor %}">
+                            Last &raquo;
+                        </a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    // Select all checkbox functionality
+    document.getElementById('select-all').addEventListener('change', function() {
+        const checkboxes = document.querySelectorAll('.article-checkbox');
+        checkboxes.forEach(checkbox => checkbox.checked = this.checked);
+    });
+
+    // Confirm bulk action
+    document.getElementById('bulk-action-form').addEventListener('submit', function(e) {
+        const checkedBoxes = document.querySelectorAll('.article-checkbox:checked');
+        if (checkedBoxes.length === 0) {
+            e.preventDefault();
+            alert('Please select at least one article.');
+            return false;
+        }
+
+        const action = document.querySelector('select[name="action"]').value;
+        if (!action) {
+            e.preventDefault();
+            alert('Please select an action.');
+            return false;
+        }
+
+        if (!confirm(`Apply this action to ${checkedBoxes.length} selected article(s)?`)) {
+            e.preventDefault();
+            return false;
+        }
+    });
+</script>
+{% endblock %}

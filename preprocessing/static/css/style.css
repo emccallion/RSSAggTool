@@ -1,0 +1,153 @@
+/* Custom styles for News Preprocessing System */
+
+body {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+}
+
+.container-fluid {
+    flex: 1;
+}
+
+.footer {
+    margin-top: auto;
+}
+
+/* Outcome badges */
+.badge-primary {
+    background-color: #0d6efd !important;
+}
+
+.badge-success {
+    background-color: #198754 !important;
+}
+
+.badge-danger {
+    background-color: #dc3545 !important;
+}
+
+.badge-secondary {
+    background-color: #6c757d !important;
+}
+
+/* Table styling */
+.table-hover tbody tr:hover {
+    background-color: #f8f9fa;
+    cursor: pointer;
+}
+
+/* Card enhancements */
+.card {
+    box-shadow: 0 0.125rem 0.25rem rgba(0, 0, 0, 0.075);
+    transition: box-shadow 0.3s ease-in-out;
+}
+
+.card:hover {
+    box-shadow: 0 0.5rem 1rem rgba(0, 0, 0, 0.15);
+}
+
+/* Form styling */
+.form-control-sm {
+    font-size: 0.875rem;
+}
+
+/* Button spacing */
+.btn {
+    margin-right: 0.25rem;
+}
+
+.btn:last-child {
+    margin-right: 0;
+}
+
+/* Statistics cards */
+.card.text-center .card-title {
+    font-size: 2rem;
+    font-weight: bold;
+    margin-bottom: 0;
+}
+
+/* Article list enhancements */
+.article-checkbox {
+    cursor: pointer;
+}
+
+/* Navbar enhancements */
+.navbar-brand i {
+    margin-right: 0.5rem;
+}
+
+/* Alert styling */
+.alert {
+    border-left: 4px solid;
+}
+
+.alert-success {
+    border-left-color: #198754;
+}
+
+.alert-danger {
+    border-left-color: #dc3545;
+}
+
+.alert-warning {
+    border-left-color: #ffc107;
+}
+
+.alert-info {
+    border-left-color: #0dcaf0;
+}
+
+/* Pagination */
+.pagination {
+    margin-top: 1rem;
+}
+
+/* Responsive table */
+@media (max-width: 768px) {
+    .table-responsive {
+        font-size: 0.875rem;
+    }
+
+    .btn-sm {
+        font-size: 0.75rem;
+        padding: 0.25rem 0.5rem;
+    }
+}
+
+/* Loading state */
+.loading {
+    opacity: 0.6;
+    pointer-events: none;
+}
+
+/* Quick edit inline */
+.quick-edit-field {
+    cursor: pointer;
+    padding: 0.25rem;
+    border-radius: 0.25rem;
+    transition: background-color 0.2s;
+}
+
+.quick-edit-field:hover {
+    background-color: #f8f9fa;
+}
+
+/* Story group badge */
+.badge.bg-info {
+    background-color: #0dcaf0 !important;
+}
+
+/* Status icon colors */
+.bi-check-circle {
+    color: #198754;
+}
+
+.bi-x-circle {
+    color: #dc3545;
+}
+
+.bi-exclamation-circle {
+    color: #ffc107;
+}
