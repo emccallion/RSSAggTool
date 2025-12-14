@@ -190,7 +190,7 @@ B [60] C
                     </button>
                 </div>
             </div>
-            <div class="card-body bg-light p-2" style="height: calc(100vh - 250px); overflow: auto;">
+            <div class="card-body bg-light p-2" style="height: calc(100vh - 250px); overflow: auto; position: relative;">
                 <div id="diagram-preview" class="text-center">
                     <div class="text-muted py-5">
                         <i class="bi bi-diagram-3 display-1"></i>
@@ -199,6 +199,18 @@ B [60] C
                 </div>
                 <div id="error-message" class="alert alert-danger mt-3 d-none" role="alert">
                     <i class="bi bi-exclamation-triangle"></i> <span id="error-text"></span>
+                </div>
+
+                <!-- Color Picker Popup -->
+                <div id="color-picker-popup" style="display: none; position: absolute; z-index: 1000; background: white; border: 2px solid var(--primary); border-radius: 8px; padding: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.2);">
+                    <div style="margin-bottom: 8px;">
+                        <label style="font-weight: 500; font-size: 13px; display: block; margin-bottom: 4px;">Node Color</label>
+                        <input type="color" id="color-picker-input" style="width: 100%; height: 40px; border: 1px solid #ccc; border-radius: 4px; cursor: pointer;">
+                    </div>
+                    <div style="display: flex; gap: 6px;">
+                        <button id="color-picker-apply" class="btn btn-primary btn-sm" style="flex: 1;">Apply</button>
+                        <button id="color-picker-cancel" class="btn btn-secondary btn-sm" style="flex: 1;">Cancel</button>
+                    </div>
                 </div>
             </div>
         </div>
@@ -258,6 +270,7 @@ Budget [200] Savings
 };
 
 let renderTimeout = null;
+let currentColorNode = null;
 
 // Load a template
 function loadTemplate(templateName) {
@@ -265,6 +278,92 @@ function loadTemplate(templateName) {
         document.getElementById('diagram-config').value = templates[templateName];
         renderDiagram();
     }
+}
+
+// Color picker functions
+function showColorPicker(node, event) {
+    currentColorNode = node;
+    const popup = document.getElementById('color-picker-popup');
+    const input = document.getElementById('color-picker-input');
+
+    // Set current color
+    const currentColor = node.color || '#4682b4';
+    input.value = currentColor;
+
+    // Position near click
+    const rect = event.target.getBoundingClientRect();
+    const container = document.querySelector('.card-body.bg-light');
+    const containerRect = container.getBoundingClientRect();
+
+    popup.style.left = (rect.left - containerRect.left + 20) + 'px';
+    popup.style.top = (rect.top - containerRect.top) + 'px';
+    popup.style.display = 'block';
+}
+
+function hideColorPicker() {
+    document.getElementById('color-picker-popup').style.display = 'none';
+    currentColorNode = null;
+}
+
+function applyColor() {
+    if (!currentColorNode) return;
+
+    const newColor = document.getElementById('color-picker-input').value;
+    currentColorNode.color = newColor;
+
+    // Update the visual
+    d3.selectAll('.node')
+        .filter(d => d === currentColorNode)
+        .select('rect')
+        .attr('fill', newColor);
+
+    // Update links that originate from this node
+    d3.selectAll('.sankey-link')
+        .filter(d => d.source === currentColorNode)
+        .attr('stroke', newColor);
+
+    // Update the config text to include the color
+    updateConfigWithColors();
+
+    hideColorPicker();
+}
+
+function updateConfigWithColors() {
+    const config = document.getElementById('diagram-config').value;
+    const lines = config.split('\n');
+    const newLines = [];
+    const coloredNodes = new Set();
+
+    // First pass: keep non-color lines and track which nodes already have colors
+    for (let line of lines) {
+        const trimmed = line.trim();
+        if (trimmed.startsWith(':')) {
+            const match = trimmed.match(/^:(.+?)\s+#/);
+            if (match) {
+                coloredNodes.add(match[1].trim());
+            }
+        } else {
+            newLines.push(line);
+        }
+    }
+
+    // Add color definitions at the end
+    const allNodes = document.querySelectorAll('.node');
+    const colorLines = [];
+    allNodes.forEach(nodeEl => {
+        const nodeData = d3.select(nodeEl).datum();
+        if (nodeData && nodeData.color) {
+            colorLines.push(`:${nodeData.name} ${nodeData.color}`);
+        }
+    });
+
+    // Combine
+    let finalConfig = newLines.join('\n');
+    if (colorLines.length > 0) {
+        finalConfig += '\n\n' + colorLines.join('\n');
+    }
+
+    document.getElementById('diagram-config').value = finalConfig.trim();
 }
 
 // Clear configuration
@@ -634,7 +733,13 @@ function renderDiagram() {
                 .on('start', dragStarted)
                 .on('drag', dragged)
                 .on('end', dragEnded))
-            .on('dblclick', doubleClicked);
+            .on('dblclick', doubleClicked)
+            .on('click', function(event, d) {
+                // Only trigger color picker on single click (not during drag)
+                if (event.defaultPrevented) return; // Skip if drag happened
+                event.stopPropagation();
+                showColorPicker(d, event);
+            });
 
         // Add node rectangles (if enabled)
         if (showNodes) {
@@ -648,7 +753,7 @@ function renderDiagram() {
                 .attr('stroke', '#fff')
                 .attr('stroke-width', 1)
                 .append('title')
-                .text(d => `${d.name}\n${d.value}\n\nDrag to move • Shift+drag for straight lines • Double-click to reset`);
+                .text(d => `${d.name}\n${d.value}\n\nClick to change color\nDrag to move • Shift+drag for straight lines\nDouble-click to reset`);
         } else {
             // Add invisible hitbox for dragging when nodes are hidden
             nodeElements.append('rect')
@@ -659,7 +764,7 @@ function renderDiagram() {
                 .attr('fill', 'transparent')
                 .attr('stroke', 'transparent')
                 .append('title')
-                .text(d => `${d.name}\n${d.value}\n\nDrag to move • Shift+drag for straight lines • Double-click to reset`);
+                .text(d => `${d.name}\n${d.value}\n\nClick to change color\nDrag to move • Shift+drag for straight lines\nDouble-click to reset`);
         }
 
         // Add labels (if enabled)
@@ -735,6 +840,22 @@ function renderDiagram() {
 document.getElementById('diagram-config').addEventListener('input', function() {
     clearTimeout(renderTimeout);
     renderTimeout = setTimeout(renderDiagram, 1000);
+});
+
+// Color picker button handlers
+document.getElementById('color-picker-apply').addEventListener('click', applyColor);
+document.getElementById('color-picker-cancel').addEventListener('click', hideColorPicker);
+
+// Hide color picker when clicking outside
+document.addEventListener('click', function(event) {
+    const popup = document.getElementById('color-picker-popup');
+    const picker = document.getElementById('color-picker-input');
+
+    if (popup.style.display === 'block' &&
+        !popup.contains(event.target) &&
+        !event.target.closest('.node')) {
+        hideColorPicker();
+    }
 });
 
 // Save form handler
