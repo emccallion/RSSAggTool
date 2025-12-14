@@ -126,6 +126,244 @@
                 </small>
             </div>
         </div>
+
+        <div class="card mt-3">
+            <div class="card-header" style="background-color: var(--primary) !important;">
+                <h6 class="text-white mb-0"><i class="bi bi-diagram-3"></i> Node Associations</h6>
+            </div>
+            <div class="card-body">
+                <div id="current-associations">
+                    <small class="text-muted">Loading...</small>
+                </div>
+
+                <hr>
+
+                <button type="button" class="btn btn-sm btn-primary w-100" onclick="showNodeAssociationModal()">
+                    <i class="bi bi-plus-circle"></i> Associate with Sankey Node
+                </button>
+            </div>
+        </div>
     </div>
 </div>
+
+<!-- Node Association Modal -->
+<div class="modal fade" id="nodeAssociationModal" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title"><i class="bi bi-diagram-3"></i> Associate with Node</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+                <div class="mb-3">
+                    <label for="node-select" class="form-label">Select Published Node</label>
+                    <select class="form-select" id="node-select">
+                        <option value="">-- Select a node --</option>
+                    </select>
+                    <small class="text-muted">Only published Sankey diagram nodes appear here.</small>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label">Association Type</label>
+                    <div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="association-type" id="type-supporting" value="supporting" checked>
+                            <label class="form-check-label" for="type-supporting">
+                                <i class="bi bi-check-circle text-success"></i> Supporting
+                            </label>
+                        </div>
+                        <div class="form-check form-check-inline">
+                            <input class="form-check-input" type="radio" name="association-type" id="type-conflicting" value="conflicting">
+                            <label class="form-check-label" for="type-conflicting">
+                                <i class="bi bi-x-circle text-danger"></i> Conflicting
+                            </label>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label for="association-score" class="form-label">Confidence Score</label>
+                    <input type="number" class="form-control" id="association-score" value="1" min="0" max="100">
+                    <small class="text-muted">Higher scores indicate stronger associations (0-100)</small>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="button" class="btn btn-primary" onclick="createAssociation()">
+                    <i class="bi bi-save"></i> Save Association
+                </button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+const articleId = {{ article.id }};
+let nodeAssociationModal;
+
+document.addEventListener('DOMContentLoaded', function() {
+    // Initialize modal
+    nodeAssociationModal = new bootstrap.Modal(document.getElementById('nodeAssociationModal'));
+
+    // Load current associations
+    loadCurrentAssociations();
+});
+
+function loadCurrentAssociations() {
+    const container = document.getElementById('current-associations');
+    container.innerHTML = '<small class="text-muted">Loading...</small>';
+
+    fetch(`/sankey/ajax/nodes/published/`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.nodes) {
+                // Check which nodes are associated with this article
+                const associationsPromises = data.nodes.map(node =>
+                    fetch(`/sankey/ajax/nodes/${node.diagram_id}/${encodeURIComponent(node.name)}/associations/`)
+                        .then(r => r.json())
+                        .then(assocData => {
+                            if (assocData.success) {
+                                const supporting = assocData.supporting.find(a => a.article_id === articleId);
+                                const conflicting = assocData.conflicting.find(a => a.article_id === articleId);
+                                if (supporting || conflicting) {
+                                    return {
+                                        node: node,
+                                        association: supporting || conflicting,
+                                        type: supporting ? 'supporting' : 'conflicting'
+                                    };
+                                }
+                            }
+                            return null;
+                        })
+                );
+
+                Promise.all(associationsPromises).then(results => {
+                    const associations = results.filter(r => r !== null);
+
+                    if (associations.length > 0) {
+                        container.innerHTML = associations.map(item => `
+                            <div class="mb-2 p-2 border rounded">
+                                <div class="d-flex justify-content-between align-items-start">
+                                    <div>
+                                        <strong>${item.node.name}</strong><br>
+                                        <small class="text-muted">${item.node.diagram_name}</small><br>
+                                        <span class="badge ${item.type === 'supporting' ? 'bg-success' : 'bg-danger'} mt-1">
+                                            <i class="bi ${item.type === 'supporting' ? 'bi-check-circle' : 'bi-x-circle'}"></i>
+                                            ${item.type.charAt(0).toUpperCase() + item.type.slice(1)}
+                                            (Score: ${item.association.score})
+                                        </span>
+                                    </div>
+                                    <button class="btn btn-sm btn-outline-danger" onclick="deleteAssociation(${item.association.id})">
+                                        <i class="bi bi-trash"></i>
+                                    </button>
+                                </div>
+                            </div>
+                        `).join('');
+                    } else {
+                        container.innerHTML = '<small class="text-muted"><em>No node associations yet.</em></small>';
+                    }
+                });
+            } else {
+                container.innerHTML = '<small class="text-muted"><em>No published nodes available.</em></small>';
+            }
+        })
+        .catch(error => {
+            console.error('Error loading associations:', error);
+            container.innerHTML = '<small class="text-danger"><em>Error loading associations.</em></small>';
+        });
+}
+
+function showNodeAssociationModal() {
+    // Load published nodes
+    const select = document.getElementById('node-select');
+    select.innerHTML = '<option value="">Loading...</option>';
+
+    fetch(`/sankey/ajax/nodes/published/`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success && data.nodes && data.nodes.length > 0) {
+                select.innerHTML = '<option value="">-- Select a node --</option>' +
+                    data.nodes.map(node => `
+                        <option value="${node.id}" data-diagram="${node.diagram_id}" data-name="${node.name}">
+                            ${node.name} (${node.diagram_name})
+                        </option>
+                    `).join('');
+                nodeAssociationModal.show();
+            } else {
+                alert('No published nodes available. Please publish a Sankey diagram first.');
+            }
+        })
+        .catch(error => {
+            console.error('Error loading nodes:', error);
+            alert('Error loading published nodes.');
+        });
+}
+
+function createAssociation() {
+    const nodeId = document.getElementById('node-select').value;
+    const associationType = document.querySelector('input[name="association-type"]:checked').value;
+    const score = parseInt(document.getElementById('association-score').value) || 0;
+
+    if (!nodeId) {
+        alert('Please select a node.');
+        return;
+    }
+
+    fetch(`/sankey/ajax/associations/create/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        },
+        body: JSON.stringify({
+            article_id: articleId,
+            node_id: parseInt(nodeId),
+            association_type: associationType,
+            score: score,
+            created_by: 'user'
+        })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Association created successfully!');
+            nodeAssociationModal.hide();
+            loadCurrentAssociations();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error creating association:', error);
+        alert('Error creating association.');
+    });
+}
+
+function deleteAssociation(associationId) {
+    if (!confirm('Are you sure you want to delete this association?')) {
+        return;
+    }
+
+    fetch(`/sankey/ajax/associations/${associationId}/delete/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': '{{ csrf_token }}'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert('Association deleted successfully!');
+            loadCurrentAssociations();
+        } else {
+            alert('Error: ' + data.message);
+        }
+    })
+    .catch(error => {
+        console.error('Error deleting association:', error);
+        alert('Error deleting association.');
+    });
+}
+</script>
 {% endblock %}

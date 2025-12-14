@@ -197,6 +197,25 @@ B [60] C
                     <button type="button" class="btn btn-outline-secondary btn-sm w-100" onclick="saveSnapshot()">
                         <i class="bi bi-bookmark"></i> Manual Snapshot
                     </button>
+
+                    <hr class="my-3">
+
+                    <div class="mb-2">
+                        <small class="text-muted"><i class="bi bi-globe"></i> Publishing</small>
+                    </div>
+                    {% if diagram.is_published %}
+                    <div class="alert alert-success p-2 small mb-2">
+                        <i class="bi bi-check-circle"></i> Published<br>
+                        <small class="text-muted">{{ diagram.published_at|date:"Y-m-d H:i" }}</small>
+                    </div>
+                    {% else %}
+                    <button type="button" class="btn btn-warning btn-sm w-100" onclick="publishDiagram()" id="publish-btn">
+                        <i class="bi bi-globe"></i> Publish Diagram
+                    </button>
+                    <small class="text-muted d-block mt-1" style="font-size: 10px;">
+                        Publishing creates database entries for nodes and enables article associations.
+                    </small>
+                    {% endif %}
                 </div>
             </div>
         </div>
@@ -227,15 +246,49 @@ B [60] C
                     <i class="bi bi-exclamation-triangle"></i> <span id="error-text"></span>
                 </div>
 
-                <!-- Color Picker Popup -->
-                <div id="color-picker-popup" style="display: none; position: absolute; z-index: 1000; background: white; border: 2px solid var(--primary); border-radius: 8px; padding: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.2);">
+                <!-- Node Popup (Color Picker + Associations for Published Diagrams) -->
+                <div id="color-picker-popup" style="display: none; position: absolute; z-index: 1000; background: white; border: 2px solid var(--primary); border-radius: 8px; padding: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.2); max-width: 400px; min-width: 250px;">
+                    <!-- Color Picker Section -->
                     <div style="margin-bottom: 8px;">
                         <label style="font-weight: 500; font-size: 13px; display: block; margin-bottom: 4px;" id="color-picker-label">Node Color</label>
                         <input type="color" id="color-picker-input" style="width: 100%; height: 40px; border: 1px solid #ccc; border-radius: 4px; cursor: pointer;">
                     </div>
-                    <div style="display: flex; gap: 6px;">
+                    <div style="display: flex; gap: 6px; margin-bottom: 12px;">
                         <button id="color-picker-apply" class="btn btn-primary btn-sm" style="flex: 1;">Apply</button>
                         <button id="color-picker-cancel" class="btn btn-secondary btn-sm" style="flex: 1;">Cancel</button>
+                    </div>
+
+                    <!-- Associations Section (only for published diagrams) -->
+                    <div id="node-associations-section" style="display: none; border-top: 1px solid #dee2e6; padding-top: 12px;">
+                        <div style="font-weight: 500; font-size: 13px; margin-bottom: 8px;">
+                            Article Associations
+                        </div>
+
+                        <!-- Supporting Sources -->
+                        <div style="margin-bottom: 8px;">
+                            <div style="display: flex; justify-content: between; align-items: center; padding: 4px 0;">
+                                <span style="font-size: 12px; color: #28a745;">
+                                    <i class="bi bi-check-circle"></i> Supporting
+                                </span>
+                                <span id="supporting-score" class="badge bg-success" style="font-size: 11px;">0</span>
+                            </div>
+                            <div id="supporting-list" style="font-size: 11px; color: #666; max-height: 150px; overflow-y: auto;">
+                                <em>No supporting sources</em>
+                            </div>
+                        </div>
+
+                        <!-- Conflicting Sources -->
+                        <div>
+                            <div style="display: flex; justify-content: between; align-items: center; padding: 4px 0;">
+                                <span style="font-size: 12px; color: #dc3545;">
+                                    <i class="bi bi-x-circle"></i> Conflicting
+                                </span>
+                                <span id="conflicting-score" class="badge bg-danger" style="font-size: 11px;">0</span>
+                            </div>
+                            <div id="conflicting-list" style="font-size: 11px; color: #666; max-height: 150px; overflow-y: auto;">
+                                <em>No conflicting sources</em>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
@@ -305,6 +358,10 @@ Budget [200] Savings
 :Savings #F39C12`
 };
 
+// Diagram metadata
+const diagramId = {{ diagram.pk|default:"null" }};
+const isPublished = {{ diagram.is_published|yesno:"true,false" }};
+
 let renderTimeout = null;
 let currentColorNode = null;
 let currentColorLink = null;
@@ -338,8 +395,12 @@ function loadTemplate(templateName) {
 // Color picker functions
 function showColorPicker(node, event) {
     currentColorNode = node;
+    currentColorLink = null;
     const popup = document.getElementById('color-picker-popup');
     const input = document.getElementById('color-picker-input');
+    const label = document.getElementById('color-picker-label');
+
+    label.textContent = 'Node Color';
 
     // Set current color (use default if no color set)
     const currentColor = node.color || '#4682b4';
@@ -353,17 +414,24 @@ function showColorPicker(node, event) {
     let left = event.pageX - containerRect.left - window.pageXOffset + 20;
     let top = event.pageY - containerRect.top - window.pageYOffset;
 
-    // Keep within bounds
-    if (left + 200 > container.clientWidth) {
-        left = event.pageX - containerRect.left - window.pageXOffset - 220; // Show on left instead
+    // Keep within bounds (increased width for associations section)
+    if (left + 300 > container.clientWidth) {
+        left = event.pageX - containerRect.left - window.pageXOffset - 320; // Show on left instead
     }
-    if (top + 120 > container.clientHeight) {
-        top = container.clientHeight - 120;
+    if (top + 400 > container.clientHeight) {
+        top = container.clientHeight - 400;
     }
 
     popup.style.left = Math.max(10, left) + 'px';
     popup.style.top = Math.max(10, top) + 'px';
     popup.style.display = 'block';
+
+    // Load associations if diagram is published
+    if (isPublished && diagramId) {
+        loadNodeAssociations(node.name);
+    } else {
+        document.getElementById('node-associations-section').style.display = 'none';
+    }
 
     console.log('Color picker shown for node:', node.name, 'at position:', left, top);
 }
@@ -1287,6 +1355,122 @@ function downloadPNG() {
     };
 
     img.src = url;
+}
+
+// Publishing and Association Functions
+function publishDiagram() {
+    if (!diagramId) {
+        alert('Please save the diagram first before publishing.');
+        return;
+    }
+
+    if (!confirm('Publishing will lock the diagram structure and create database entries for all nodes. You can still change colors and positions. Continue?')) {
+        return;
+    }
+
+    // Get all current nodes from the diagram
+    const config = document.getElementById('diagram-config').value;
+    const { nodeMap } = parseDiagramConfig(config);
+
+    const nodes = Array.from(nodeMap.values()).map(node => ({
+        name: node.name,
+        color: node.color
+    }));
+
+    const publishBtn = document.getElementById('publish-btn');
+    if (publishBtn) {
+        publishBtn.disabled = true;
+        publishBtn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Publishing...';
+    }
+
+    fetch(`/sankey/ajax/publish/${diagramId}/`, {
+        method: 'POST',
+        headers: {
+            'Content-Type': 'application/json',
+            'X-CSRFToken': document.querySelector('[name=csrfmiddlewaretoken]').value
+        },
+        body: JSON.stringify({ nodes: nodes })
+    })
+    .then(response => response.json())
+    .then(data => {
+        if (data.success) {
+            alert(data.message);
+            window.location.reload(); // Reload to show published status
+        } else {
+            alert('Error: ' + data.message);
+            if (publishBtn) {
+                publishBtn.disabled = false;
+                publishBtn.innerHTML = '<i class="bi bi-globe"></i> Publish Diagram';
+            }
+        }
+    })
+    .catch(error => {
+        console.error('Error publishing diagram:', error);
+        alert('Error publishing diagram: ' + error.message);
+        if (publishBtn) {
+            publishBtn.disabled = false;
+            publishBtn.innerHTML = '<i class="bi bi-globe"></i> Publish Diagram';
+        }
+    });
+}
+
+function loadNodeAssociations(nodeName) {
+    const associationsSection = document.getElementById('node-associations-section');
+    const supportingList = document.getElementById('supporting-list');
+    const conflictingList = document.getElementById('conflicting-list');
+    const supportingScore = document.getElementById('supporting-score');
+    const conflictingScore = document.getElementById('conflicting-score');
+
+    // Show loading state
+    supportingList.innerHTML = '<em>Loading...</em>';
+    conflictingList.innerHTML = '<em>Loading...</em>';
+    associationsSection.style.display = 'block';
+
+    fetch(`/sankey/ajax/nodes/${diagramId}/${encodeURIComponent(nodeName)}/associations/`)
+        .then(response => response.json())
+        .then(data => {
+            if (data.success) {
+                // Update scores
+                supportingScore.textContent = data.supporting_score || 0;
+                conflictingScore.textContent = data.conflicting_score || 0;
+
+                // Update supporting list
+                if (data.supporting.length > 0) {
+                    supportingList.innerHTML = data.supporting.map(assoc => `
+                        <div style="padding: 4px 0; border-bottom: 1px solid #eee;">
+                            <a href="/article/${assoc.article_id}/" target="_blank" style="text-decoration: none; color: #28a745;">
+                                ${assoc.article_title.substring(0, 60)}${assoc.article_title.length > 60 ? '...' : ''}
+                            </a>
+                            <span class="badge bg-success" style="font-size: 10px;">+${assoc.score}</span>
+                        </div>
+                    `).join('');
+                } else {
+                    supportingList.innerHTML = '<em>No supporting sources</em>';
+                }
+
+                // Update conflicting list
+                if (data.conflicting.length > 0) {
+                    conflictingList.innerHTML = data.conflicting.map(assoc => `
+                        <div style="padding: 4px 0; border-bottom: 1px solid #eee;">
+                            <a href="/article/${assoc.article_id}/" target="_blank" style="text-decoration: none; color: #dc3545;">
+                                ${assoc.article_title.substring(0, 60)}${assoc.article_title.length > 60 ? '...' : ''}
+                            </a>
+                            <span class="badge bg-danger" style="font-size: 10px;">+${assoc.score}</span>
+                        </div>
+                    `).join('');
+                } else {
+                    conflictingList.innerHTML = '<em>No conflicting sources</em>';
+                }
+            } else {
+                supportingList.innerHTML = '<em>Error loading associations</em>';
+                conflictingList.innerHTML = '<em>Error loading associations</em>';
+            }
+        })
+        .catch(error => {
+            console.error('Error loading associations:', error);
+            supportingList.innerHTML = '<em>Error loading</em>';
+            conflictingList.innerHTML = '<em>Error loading</em>';
+        });
 }
 
 // Initial render if editing
