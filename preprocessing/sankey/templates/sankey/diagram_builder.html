@@ -4,116 +4,499 @@
 {% block title %}{% if is_edit %}Edit{% else %}Build{% endif %} Sankey Diagram{% endblock %}
 
 {% block content %}
-<div class="row">
+<div class="row mb-3">
     <div class="col-12">
-        <h2><i class="bi bi-diagram-3"></i> {% if is_edit %}Edit{% else %}Build{% endif %} Sankey Diagram</h2>
-
-        <!-- Save Form -->
-        <div class="card mb-3 border-primary">
-            <div class="card-header">
-                <i class="bi bi-save"></i> Save Diagram
-            </div>
-            <div class="card-body">
-                <form method="post" id="save-diagram-form">
-                    {% csrf_token %}
-                    <div class="row g-3">
-                        <div class="col-md-4">
-                            <label for="diagram-name" class="form-label">Diagram Name *</label>
-                            <input type="text" class="form-control" id="diagram-name" name="name"
-                                   value="{{ diagram.name|default:'' }}" required
-                                   placeholder="Enter diagram name">
-                        </div>
-                        <div class="col-md-6">
-                            <label for="diagram-description" class="form-label">Description</label>
-                            <input type="text" class="form-control" id="diagram-description" name="description"
-                                   value="{{ diagram.description|default:'' }}"
-                                   placeholder="Optional description">
-                        </div>
-                        <div class="col-md-2 d-flex align-items-end">
-                            <button type="submit" class="btn btn-success w-100">
-                                <i class="bi bi-save"></i> Save
-                            </button>
-                        </div>
-                    </div>
-                    <input type="hidden" id="config-text-input" name="config_text" value="{{ diagram.config_text|default:'' }}">
-                    <input type="hidden" id="settings-json-input" name="settings_json" value="{}">
-                </form>
-            </div>
-        </div>
-
-        <!-- SankeyMatic Interface -->
-        <div class="card">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <span><i class="bi bi-diagram-3-fill"></i> Diagram Builder</span>
-                <div>
-                    <a href="{% url 'sankey_list' %}" class="btn btn-sm btn-secondary">
-                        <i class="bi bi-arrow-left"></i> Back to List
-                    </a>
-                    <button type="button" class="btn btn-sm btn-info" id="load-from-save">
-                        <i class="bi bi-arrow-clockwise"></i> Load Saved Config
-                    </button>
-                </div>
-            </div>
-            <div class="card-body p-0">
-                <iframe id="sankeymatic-frame" src="{% static 'sankeymatic/index.html' %}"
-                        style="width: 100%; height: 85vh; border: none;">
-                </iframe>
-            </div>
-        </div>
-
-        <!-- Attribution -->
-        <div class="alert alert-info mt-3">
-            <strong>Powered by SankeyMatic:</strong> Copyright © 2014-2024 Steve Bogart
-            &lt;sbogart@sankeymatic.com&gt;.
-            Licensed under the ISC License.
-            <a href="https://github.com/nowthis/sankeymatic" target="_blank" class="alert-link">
-                View on GitHub <i class="bi bi-box-arrow-up-right"></i>
+        <div class="d-flex justify-content-between align-items-center">
+            <h2><i class="bi bi-diagram-3"></i> {% if is_edit %}Edit{% else %}Build{% endif %} Sankey Diagram</h2>
+            <a href="{% url 'sankey_list' %}" class="btn btn-secondary">
+                <i class="bi bi-arrow-left"></i> Back to List
             </a>
         </div>
     </div>
 </div>
+
+<!-- Save Form -->
+<div class="card mb-3 border-success">
+    <div class="card-header bg-success text-white">
+        <i class="bi bi-save"></i> Save Diagram
+    </div>
+    <div class="card-body">
+        <form method="post" id="save-diagram-form">
+            {% csrf_token %}
+            <div class="row g-3">
+                <div class="col-md-5">
+                    <label for="diagram-name" class="form-label">Diagram Name *</label>
+                    <input type="text" class="form-control" id="diagram-name" name="name"
+                           value="{{ diagram.name|default:'' }}" required
+                           placeholder="Enter diagram name">
+                </div>
+                <div class="col-md-5">
+                    <label for="diagram-description" class="form-label">Description</label>
+                    <input type="text" class="form-control" id="diagram-description" name="description"
+                           value="{{ diagram.description|default:'' }}"
+                           placeholder="Optional description">
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-success w-100">
+                        <i class="bi bi-save"></i> Save
+                    </button>
+                </div>
+            </div>
+            <input type="hidden" id="config-text-input" name="config_text" value="">
+            <input type="hidden" id="settings-json-input" name="settings_json" value="{}">
+        </form>
+    </div>
+</div>
+
+<!-- Diagram Builder -->
+<div class="row">
+    <!-- Left Column: Editor -->
+    <div class="col-lg-6">
+        <div class="card mb-3">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-pencil-square"></i> Diagram Configuration</span>
+                <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="collapse" data-bs-target="#syntaxHelp">
+                    <i class="bi bi-question-circle"></i> Syntax Help
+                </button>
+            </div>
+            <div class="card-body">
+                <textarea id="diagram-config" class="form-control font-monospace" rows="20"
+                          placeholder="Enter your flow definitions here...
+
+Example:
+Source A [100] Target B
+Target B [75] Target C
+Target B [25] Target D
+
+// Use colors:
+:Source A #4A90E2
+:Target B #F5A623"
+                          style="resize: vertical;">{{ diagram.config_text|default:'' }}</textarea>
+
+                <div class="mt-3">
+                    <label class="form-label">Quick Templates:</label>
+                    <div class="btn-group d-flex gap-2 flex-wrap" role="group">
+                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="loadTemplate('simple')">
+                            Simple Flow
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="loadTemplate('article')">
+                            Article Processing
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="loadTemplate('budget')">
+                            Budget Breakdown
+                        </button>
+                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="clearConfig()">
+                            <i class="bi bi-trash"></i> Clear
+                        </button>
+                    </div>
+                </div>
+
+                <div class="collapse mt-3" id="syntaxHelp">
+                    <div class="card card-body bg-light">
+                        <h6><i class="bi bi-info-circle"></i> Syntax Reference</h6>
+                        <ul class="mb-0 small">
+                            <li><strong>Flows:</strong> <code>Source [amount] Target</code></li>
+                            <li><strong>Colors:</strong> <code>:Node Name #HexColor</code></li>
+                            <li><strong>Comments:</strong> <code>// Your comment here</code></li>
+                            <li><strong>Multi-word names:</strong> Use quotes if needed</li>
+                        </ul>
+                        <hr>
+                        <p class="mb-0 small"><strong>Example:</strong></p>
+                        <pre class="mb-0 small">A [50] B
+B [30] C
+B [20] D
+:A #FF6B6B
+:B #4ECDC4</pre>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Settings Panel -->
+        <div class="card">
+            <div class="card-header">
+                <i class="bi bi-sliders"></i> Diagram Settings
+            </div>
+            <div class="card-body">
+                <div class="row g-3">
+                    <div class="col-md-6">
+                        <label for="diagram-size" class="form-label">Size</label>
+                        <select id="diagram-size" class="form-select form-select-sm">
+                            <option value="600">Small (600px)</option>
+                            <option value="800" selected>Medium (800px)</option>
+                            <option value="1000">Large (1000px)</option>
+                            <option value="1200">Extra Large (1200px)</option>
+                        </select>
+                    </div>
+                    <div class="col-md-6">
+                        <label for="diagram-layout" class="form-label">Layout</label>
+                        <select id="diagram-layout" class="form-select form-select-sm">
+                            <option value="horizontal" selected>Horizontal</option>
+                            <option value="vertical">Vertical</option>
+                        </select>
+                    </div>
+                </div>
+                <div class="mt-3">
+                    <button type="button" class="btn btn-primary btn-sm w-100" onclick="renderDiagram()">
+                        <i class="bi bi-arrow-clockwise"></i> Update Preview
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Right Column: Preview -->
+    <div class="col-lg-6">
+        <div class="card sticky-top" style="top: 20px;">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-eye"></i> Live Preview</span>
+                <div>
+                    <button type="button" class="btn btn-sm btn-outline-success" onclick="downloadSVG()">
+                        <i class="bi bi-download"></i> SVG
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-info" onclick="downloadPNG()">
+                        <i class="bi bi-download"></i> PNG
+                    </button>
+                </div>
+            </div>
+            <div class="card-body bg-light" style="min-height: 500px;">
+                <div id="diagram-preview" class="text-center">
+                    <div class="text-muted py-5">
+                        <i class="bi bi-diagram-3 display-1"></i>
+                        <p class="mt-3">Enter flow configuration to see preview</p>
+                    </div>
+                </div>
+                <div id="error-message" class="alert alert-danger mt-3 d-none" role="alert">
+                    <i class="bi bi-exclamation-triangle"></i> <span id="error-text"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Attribution -->
+<div class="alert alert-info mt-3">
+    <strong>Powered by SankeyMatic:</strong> Copyright © 2014-2024 Steve Bogart
+    &lt;sbogart@sankeymatic.com&gt;.
+    Licensed under the ISC License.
+    <a href="https://github.com/nowthis/sankeymatic" target="_blank" class="alert-link">
+        View on GitHub <i class="bi bi-box-arrow-up-right"></i>
+    </a>
+</div>
 {% endblock %}
 
 {% block extra_js %}
-<script>
-document.addEventListener('DOMContentLoaded', function() {
-    const iframe = document.getElementById('sankeymatic-frame');
-    const saveForm = document.getElementById('save-diagram-form');
-    const configInput = document.getElementById('config-text-input');
-    const loadBtn = document.getElementById('load-from-save');
+<!-- Load D3.js and D3-sankey plugin -->
+<script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/d3-sankey@0.12"></script>
 
-    // Load saved config into iframe when requested
-    if (loadBtn) {
-        loadBtn.addEventListener('click', function() {
-            const savedConfig = configInput.value;
-            if (savedConfig) {
-                // Try to communicate with iframe to load config
-                // Note: This requires cross-origin communication setup
-                alert('Saved configuration:\n' + savedConfig.substring(0, 200) + '...\n\nCopy this and paste it into the input field in the diagram builder.');
-            } else {
-                alert('No saved configuration found. Create your diagram and save it first.');
+<script>
+// Template configurations
+const templates = {
+    simple: `A [100] B
+B [60] C
+B [40] D`,
+
+    article: `RSS Feeds [500] New Articles
+New Articles [300] Manual Review
+New Articles [200] Auto-Rejected
+Manual Review [250] Approved
+Manual Review [50] Rejected
+Approved [200] Published
+Approved [50] Archived
+
+:RSS Feeds #4A90E2
+:New Articles #F5A623
+:Manual Review #7ED321
+:Approved #50E3C2
+:Published #B8E986
+:Auto-Rejected #D0021B
+:Rejected #D0021B
+:Archived #9013FE`,
+
+    budget: `Income [5000] Budget
+Budget [2000] Housing
+Budget [1500] Food
+Budget [800] Transport
+Budget [500] Entertainment
+Budget [200] Savings
+
+:Income #2ECC71
+:Budget #3498DB
+:Savings #F39C12`
+};
+
+let renderTimeout = null;
+
+// Load a template
+function loadTemplate(templateName) {
+    if (templates[templateName]) {
+        document.getElementById('diagram-config').value = templates[templateName];
+        renderDiagram();
+    }
+}
+
+// Clear configuration
+function clearConfig() {
+    if (confirm('Clear all configuration?')) {
+        document.getElementById('diagram-config').value = '';
+        document.getElementById('diagram-preview').innerHTML = `
+            <div class="text-muted py-5">
+                <i class="bi bi-diagram-3 display-1"></i>
+                <p class="mt-3">Enter flow configuration to see preview</p>
+            </div>
+        `;
+        document.getElementById('error-message').classList.add('d-none');
+    }
+}
+
+// Parse SankeyMatic config format
+function parseConfig(config) {
+    const lines = config.split('\n');
+    const nodes = new Map();
+    const links = [];
+    const colors = new Map();
+
+    for (let line of lines) {
+        line = line.trim();
+
+        // Skip comments and empty lines
+        if (!line || line.startsWith('//')) continue;
+
+        // Parse color definitions: :NodeName #HexColor
+        if (line.startsWith(':')) {
+            const colorMatch = line.match(/:(.+?)\s+#([0-9A-Fa-f]{6})/);
+            if (colorMatch) {
+                colors.set(colorMatch[1].trim(), '#' + colorMatch[2]);
             }
-        });
+            continue;
+        }
+
+        // Parse flow: Source [amount] Target
+        const flowMatch = line.match(/^(.+?)\s*\[([0-9.]+|\*)\]\s*(.+)$/);
+        if (flowMatch) {
+            const source = flowMatch[1].trim();
+            const value = parseFloat(flowMatch[2]) || 0;
+            const target = flowMatch[3].trim();
+
+            if (value > 0) {
+                nodes.set(source, source);
+                nodes.set(target, target);
+                links.push({ source, target, value });
+            }
+        }
     }
 
-    // Before saving, try to get config from iframe
-    saveForm.addEventListener('submit', function(e) {
-        const manualConfig = prompt('Please paste your Sankey diagram configuration text here:\n\n(Copy it from the input field in the diagram builder above)');
+    return {
+        nodes: Array.from(nodes.keys()).map(name => ({
+            name,
+            color: colors.get(name) || null
+        })),
+        links
+    };
+}
 
-        if (manualConfig && manualConfig.trim()) {
-            configInput.value = manualConfig.trim();
-        } else if (!configInput.value) {
-            alert('Please provide the diagram configuration text to save.');
-            e.preventDefault();
-            return false;
+// Render diagram using D3-sankey
+function renderDiagram() {
+    const config = document.getElementById('diagram-config').value.trim();
+    const preview = document.getElementById('diagram-preview');
+    const errorDiv = document.getElementById('error-message');
+    const errorText = document.getElementById('error-text');
+
+    if (!config) {
+        preview.innerHTML = `
+            <div class="text-muted py-5">
+                <i class="bi bi-diagram-3 display-1"></i>
+                <p class="mt-3">Enter flow configuration to see preview</p>
+            </div>
+        `;
+        errorDiv.classList.add('d-none');
+        return;
+    }
+
+    try {
+        errorDiv.classList.add('d-none');
+
+        // Parse the configuration
+        const data = parseConfig(config);
+
+        if (data.links.length === 0) {
+            throw new Error('No valid flow definitions found. Use format: Source [amount] Target');
         }
-    });
 
-    // If editing, show saved config info
-    {% if diagram %}
-    console.log('Editing diagram: {{ diagram.name }}');
-    console.log('Saved config length: {{ diagram.config_text|length }} characters');
-    {% endif %}
+        // Clear preview and create SVG
+        preview.innerHTML = '';
+
+        const width = parseInt(document.getElementById('diagram-size').value) || 800;
+        const height = Math.max(400, data.nodes.length * 40);
+
+        const svg = d3.select('#diagram-preview')
+            .append('svg')
+            .attr('width', width)
+            .attr('height', height)
+            .attr('viewBox', [0, 0, width, height])
+            .attr('style', 'max-width: 100%; height: auto; background: white;');
+
+        // Create sankey generator
+        const sankey = d3.sankey()
+            .nodeWidth(15)
+            .nodePadding(10)
+            .extent([[1, 5], [width - 1, height - 5]]);
+
+        // Generate the sankey diagram layout
+        const {nodes, links} = sankey({
+            nodes: data.nodes.map(d => Object.assign({}, d)),
+            links: data.links.map(d => Object.assign({}, d))
+        });
+
+        // Color scale
+        const color = d3.scaleOrdinal(d3.schemeCategory10);
+
+        // Add links
+        svg.append('g')
+            .attr('fill', 'none')
+            .selectAll('g')
+            .data(links)
+            .join('g')
+            .append('path')
+            .attr('d', d3.sankeyLinkHorizontal())
+            .attr('stroke', d => {
+                const sourceColor = d.source.color;
+                return sourceColor || color(d.source.name);
+            })
+            .attr('stroke-width', d => Math.max(1, d.width))
+            .attr('opacity', 0.5)
+            .append('title')
+            .text(d => `${d.source.name} → ${d.target.name}\n${d.value}`);
+
+        // Add nodes
+        svg.append('g')
+            .selectAll('rect')
+            .data(nodes)
+            .join('rect')
+            .attr('x', d => d.x0)
+            .attr('y', d => d.y0)
+            .attr('height', d => d.y1 - d.y0)
+            .attr('width', d => d.x1 - d.x0)
+            .attr('fill', d => d.color || color(d.name))
+            .attr('opacity', 0.8)
+            .append('title')
+            .text(d => `${d.name}\n${d.value}`);
+
+        // Add labels
+        svg.append('g')
+            .style('font', '12px sans-serif')
+            .selectAll('text')
+            .data(nodes)
+            .join('text')
+            .attr('x', d => d.x0 < width / 2 ? d.x1 + 6 : d.x0 - 6)
+            .attr('y', d => (d.y1 + d.y0) / 2)
+            .attr('dy', '0.35em')
+            .attr('text-anchor', d => d.x0 < width / 2 ? 'start' : 'end')
+            .text(d => d.name)
+            .append('tspan')
+            .attr('fill-opacity', 0.7)
+            .text(d => ` ${d.value}`);
+
+    } catch (e) {
+        errorText.textContent = e.message;
+        errorDiv.classList.remove('d-none');
+        preview.innerHTML = `
+            <div class="text-muted py-5">
+                <i class="bi bi-exclamation-circle display-4 text-danger"></i>
+                <p class="mt-3">Unable to render diagram</p>
+            </div>
+        `;
+    }
+}
+
+// Auto-render on input (with debounce)
+document.getElementById('diagram-config').addEventListener('input', function() {
+    clearTimeout(renderTimeout);
+    renderTimeout = setTimeout(renderDiagram, 1000);
 });
+
+// Save form handler
+document.getElementById('save-diagram-form').addEventListener('submit', function(e) {
+    const config = document.getElementById('diagram-config').value.trim();
+
+    if (!config) {
+        e.preventDefault();
+        alert('Please enter a diagram configuration before saving.');
+        return false;
+    }
+
+    // Copy config to hidden input
+    document.getElementById('config-text-input').value = config;
+
+    // Get settings
+    const settings = {
+        size: document.getElementById('diagram-size').value,
+        layout: document.getElementById('diagram-layout').value
+    };
+    document.getElementById('settings-json-input').value = JSON.stringify(settings);
+});
+
+// Download SVG
+function downloadSVG() {
+    const svg = document.querySelector('#diagram-preview svg');
+    if (!svg) {
+        alert('Please render a diagram first');
+        return;
+    }
+
+    const svgData = new XMLSerializer().serializeToString(svg);
+    const blob = new Blob([svgData], {type: 'image/svg+xml'});
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = (document.getElementById('diagram-name').value || 'sankey-diagram') + '.svg';
+    link.click();
+    URL.revokeObjectURL(url);
+}
+
+// Download PNG
+function downloadPNG() {
+    const svg = document.querySelector('#diagram-preview svg');
+    if (!svg) {
+        alert('Please render a diagram first');
+        return;
+    }
+
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d');
+    const svgData = new XMLSerializer().serializeToString(svg);
+    const img = new Image();
+
+    const svgBlob = new Blob([svgData], {type: 'image/svg+xml;charset=utf-8'});
+    const url = URL.createObjectURL(svgBlob);
+
+    img.onload = function() {
+        canvas.width = img.width;
+        canvas.height = img.height;
+        ctx.fillStyle = 'white';
+        ctx.fillRect(0, 0, canvas.width, canvas.height);
+        ctx.drawImage(img, 0, 0);
+
+        canvas.toBlob(function(blob) {
+            const pngUrl = URL.createObjectURL(blob);
+            const link = document.createElement('a');
+            link.href = pngUrl;
+            link.download = (document.getElementById('diagram-name').value || 'sankey-diagram') + '.png';
+            link.click();
+            URL.revokeObjectURL(pngUrl);
+            URL.revokeObjectURL(url);
+        });
+    };
+
+    img.src = url;
+}
+
+// Initial render if editing
+{% if diagram %}
+document.addEventListener('DOMContentLoaded', function() {
+    renderDiagram();
+});
+{% endif %}
 </script>
 {% endblock %}
