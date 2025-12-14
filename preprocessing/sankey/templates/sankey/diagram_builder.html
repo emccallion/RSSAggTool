@@ -181,6 +181,22 @@ B [60] C
                     <button type="button" class="btn btn-primary btn-sm w-100" onclick="renderDiagram()">
                         <i class="bi bi-arrow-clockwise"></i> Update
                     </button>
+
+                    <hr class="my-3">
+
+                    <div class="mb-2">
+                        <small class="text-muted"><i class="bi bi-clock-history"></i> Autosave & History</small>
+                    </div>
+                    <div class="form-check form-switch mb-2">
+                        <input class="form-check-input" type="checkbox" id="autosave-enabled" checked onchange="toggleAutosave()">
+                        <label class="form-check-label small" for="autosave-enabled">Enable Autosave (30s)</label>
+                    </div>
+                    <button type="button" class="btn btn-outline-primary btn-sm w-100 mb-2" onclick="showHistoryTree()">
+                        <i class="bi bi-clock-history"></i> Version History
+                    </button>
+                    <button type="button" class="btn btn-outline-secondary btn-sm w-100" onclick="saveSnapshot()">
+                        <i class="bi bi-bookmark"></i> Manual Snapshot
+                    </button>
                 </div>
             </div>
         </div>
@@ -214,12 +230,22 @@ B [60] C
                 <!-- Color Picker Popup -->
                 <div id="color-picker-popup" style="display: none; position: absolute; z-index: 1000; background: white; border: 2px solid var(--primary); border-radius: 8px; padding: 12px; box-shadow: 0 4px 12px rgba(0,0,0,0.2);">
                     <div style="margin-bottom: 8px;">
-                        <label style="font-weight: 500; font-size: 13px; display: block; margin-bottom: 4px;">Node Color</label>
+                        <label style="font-weight: 500; font-size: 13px; display: block; margin-bottom: 4px;" id="color-picker-label">Node Color</label>
                         <input type="color" id="color-picker-input" style="width: 100%; height: 40px; border: 1px solid #ccc; border-radius: 4px; cursor: pointer;">
                     </div>
                     <div style="display: flex; gap: 6px;">
                         <button id="color-picker-apply" class="btn btn-primary btn-sm" style="flex: 1;">Apply</button>
                         <button id="color-picker-cancel" class="btn btn-secondary btn-sm" style="flex: 1;">Cancel</button>
+                    </div>
+                </div>
+
+                <!-- History Tree Popup -->
+                <div id="history-popup" style="display: none; position: fixed; top: 50%; left: 50%; transform: translate(-50%, -50%); z-index: 1001; background: white; border: 2px solid var(--primary); border-radius: 8px; padding: 16px; box-shadow: 0 8px 24px rgba(0,0,0,0.3); max-height: 500px; overflow-y: auto; min-width: 400px;">
+                    <div style="display: flex; justify-content: between align-items-center; margin-bottom: 12px;">
+                        <h5 style="margin: 0;">Version History</h5>
+                        <button id="history-close" class="btn btn-sm btn-secondary" style="margin-left: auto;">✕</button>
+                    </div>
+                    <div id="history-tree-view" style="font-family: monospace; font-size: 12px;">
                     </div>
                 </div>
             </div>
@@ -281,8 +307,25 @@ Budget [200] Savings
 
 let renderTimeout = null;
 let currentColorNode = null;
+let currentColorLink = null;
 let savedNodePositions = {}; // Store custom node positions
+let savedLinkColors = {}; // Store custom link colors
 let savedCanvasSize = { width: 1200, height: 600 }; // Track canvas size for scaling
+
+// Autosave and version history
+let historyTree = {
+    id: 0,
+    parent: null,
+    children: [],
+    timestamp: Date.now(),
+    config: '',
+    positions: {},
+    linkColors: {},
+    settings: {}
+};
+let currentHistoryNode = historyTree;
+let historyCounter = 0;
+let autosaveInterval = null;
 
 // Load a template
 function loadTemplate(templateName) {
@@ -330,27 +373,72 @@ function hideColorPicker() {
     currentColorNode = null;
 }
 
+function showLinkColorPicker(link, event) {
+    currentColorLink = link;
+    currentColorNode = null;
+    const popup = document.getElementById('color-picker-popup');
+    const input = document.getElementById('color-picker-input');
+    const label = document.getElementById('color-picker-label');
+
+    label.textContent = 'Link Color';
+
+    // Get link key
+    const linkKey = `${link.source.name}->${link.target.name}`;
+    const currentColor = savedLinkColors[linkKey] || link.source.color || '#999';
+    input.value = currentColor;
+
+    // Position near click
+    const container = document.querySelector('.card-body.bg-light');
+    const containerRect = container.getBoundingClientRect();
+
+    let left = event.pageX - containerRect.left - window.pageXOffset + 20;
+    let top = event.pageY - containerRect.top - window.pageYOffset;
+
+    if (left + 200 > container.clientWidth) {
+        left = event.pageX - containerRect.left - window.pageXOffset - 220;
+    }
+    if (top + 120 > container.clientHeight) {
+        top = container.clientHeight - 120;
+    }
+
+    popup.style.left = Math.max(10, left) + 'px';
+    popup.style.top = Math.max(10, top) + 'px';
+    popup.style.display = 'block';
+
+    console.log('Link color picker shown for:', linkKey);
+}
+
 function applyColor() {
-    if (!currentColorNode) return;
-
     const newColor = document.getElementById('color-picker-input').value;
-    currentColorNode.color = newColor;
 
-    // Update the visual
-    d3.selectAll('.node')
-        .filter(d => d === currentColorNode)
-        .select('rect')
-        .attr('fill', newColor);
+    if (currentColorNode) {
+        currentColorNode.color = newColor;
 
-    // Update links that originate from this node
-    d3.selectAll('.sankey-link')
-        .filter(d => d.source === currentColorNode)
-        .attr('stroke', newColor);
+        // Update the visual
+        d3.selectAll('.node')
+            .filter(d => d === currentColorNode)
+            .select('rect')
+            .attr('fill', newColor);
 
-    // Update the config text to include the color
-    updateConfigWithColors();
+        // Update links that originate from this node
+        d3.selectAll('.sankey-link')
+            .filter(d => d.source === currentColorNode)
+            .attr('stroke', newColor);
+
+        // Update the config text to include the color
+        updateConfigWithColors();
+    } else if (currentColorLink) {
+        const linkKey = `${currentColorLink.source.name}->${currentColorLink.target.name}`;
+        savedLinkColors[linkKey] = newColor;
+
+        // Update the visual
+        d3.selectAll('.sankey-link')
+            .filter(d => d === currentColorLink)
+            .attr('stroke', newColor);
+    }
 
     hideColorPicker();
+    saveSnapshot(); // Auto-save after color change
 }
 
 function updateConfigWithColors() {
@@ -391,11 +479,150 @@ function updateConfigWithColors() {
     document.getElementById('diagram-config').value = finalConfig.trim();
 }
 
+// Autosave and History Functions
+function saveSnapshot() {
+    const config = document.getElementById('diagram-config').value.trim();
+    if (!config) return;
+
+    const settings = {
+        width: document.getElementById('diagram-width').value,
+        height: document.getElementById('diagram-height').value,
+        nodeWidth: document.getElementById('node-width').value,
+        nodePadding: document.getElementById('node-padding').value,
+        showNodes: document.getElementById('show-nodes').checked,
+        showLabels: document.getElementById('show-labels').checked,
+        labelPosition: document.querySelector('input[name="label-position"]:checked').value
+    };
+
+    // Create new history node
+    historyCounter++;
+    const newNode = {
+        id: historyCounter,
+        parent: currentHistoryNode,
+        children: [],
+        timestamp: Date.now(),
+        config: config,
+        positions: JSON.parse(JSON.stringify(savedNodePositions)),
+        linkColors: JSON.parse(JSON.stringify(savedLinkColors)),
+        settings: settings
+    };
+
+    currentHistoryNode.children.push(newNode);
+    currentHistoryNode = newNode;
+
+    console.log('Snapshot saved:', newNode.id, 'at', new Date(newNode.timestamp).toLocaleTimeString());
+}
+
+function loadSnapshot(node) {
+    document.getElementById('diagram-config').value = node.config;
+    savedNodePositions = JSON.parse(JSON.stringify(node.positions));
+    savedLinkColors = JSON.parse(JSON.stringify(node.linkColors));
+
+    // Restore settings
+    if (node.settings.width) {
+        document.getElementById('diagram-width').value = node.settings.width;
+        document.getElementById('width-value').textContent = node.settings.width;
+    }
+    if (node.settings.height) {
+        document.getElementById('diagram-height').value = node.settings.height;
+        document.getElementById('height-value').textContent = node.settings.height;
+    }
+    if (node.settings.nodeWidth) {
+        document.getElementById('node-width').value = node.settings.nodeWidth;
+        document.getElementById('node-width-value').textContent = node.settings.nodeWidth;
+    }
+    if (node.settings.nodePadding) {
+        document.getElementById('node-padding').value = node.settings.nodePadding;
+        document.getElementById('node-padding-value').textContent = node.settings.nodePadding;
+    }
+    if (typeof node.settings.showNodes !== 'undefined') {
+        document.getElementById('show-nodes').checked = node.settings.showNodes;
+    }
+    if (typeof node.settings.showLabels !== 'undefined') {
+        document.getElementById('show-labels').checked = node.settings.showLabels;
+    }
+    if (node.settings.labelPosition) {
+        document.getElementById('label-' + node.settings.labelPosition).checked = true;
+    }
+
+    currentHistoryNode = node;
+    renderDiagram();
+    hideHistoryTree();
+}
+
+function toggleAutosave() {
+    const enabled = document.getElementById('autosave-enabled').checked;
+
+    if (enabled) {
+        // Autosave every 30 seconds
+        autosaveInterval = setInterval(() => {
+            saveSnapshot();
+        }, 30000);
+        console.log('Autosave enabled (every 30s)');
+    } else {
+        if (autosaveInterval) {
+            clearInterval(autosaveInterval);
+            autosaveInterval = null;
+        }
+        console.log('Autosave disabled');
+    }
+}
+
+function showHistoryTree() {
+    const popup = document.getElementById('history-popup');
+    const treeView = document.getElementById('history-tree-view');
+
+    // Build tree visualization
+    let html = '<div style="padding: 8px;">';
+    html += renderHistoryNode(historyTree, 0);
+    html += '</div>';
+
+    treeView.innerHTML = html;
+    popup.style.display = 'block';
+}
+
+function hideHistoryTree() {
+    document.getElementById('history-popup').style.display = 'none';
+}
+
+function renderHistoryNode(node, depth) {
+    const indent = '  '.repeat(depth);
+    const isCurrent = node === currentHistoryNode;
+    const time = new Date(node.timestamp).toLocaleTimeString();
+    const style = isCurrent ? 'background: #e6f2f7; padding: 4px; border-radius: 3px; font-weight: bold;' : 'padding: 4px;';
+
+    let html = `<div style="${style}">${indent}`;
+    html += isCurrent ? '▶ ' : '○ ';
+    html += `<span style="color: #666;">#${node.id}</span> `;
+    html += `<span style="color: #003d59;">${time}</span> `;
+    html += `<button onclick="loadSnapshot(findNode(${node.id}))" class="btn btn-xs btn-primary" style="font-size: 10px; padding: 2px 6px;">Load</button>`;
+    html += '</div>';
+
+    for (let child of node.children) {
+        html += renderHistoryNode(child, depth + 1);
+    }
+
+    return html;
+}
+
+function findNode(id) {
+    function search(node) {
+        if (node.id === id) return node;
+        for (let child of node.children) {
+            const found = search(child);
+            if (found) return found;
+        }
+        return null;
+    }
+    return search(historyTree);
+}
+
 // Clear configuration
 function clearConfig() {
     if (confirm('Clear all configuration?')) {
         document.getElementById('diagram-config').value = '';
         savedNodePositions = {}; // Clear saved positions
+        savedLinkColors = {}; // Clear link colors
         document.getElementById('diagram-preview').innerHTML = `
             <div class="text-muted py-5">
                 <i class="bi bi-diagram-3 display-1"></i>
@@ -403,6 +630,7 @@ function clearConfig() {
             </div>
         `;
         document.getElementById('error-message').classList.add('d-none');
+        saveSnapshot(); // Save the cleared state
     }
 }
 
@@ -592,17 +820,34 @@ function renderDiagram() {
             .attr('class', 'sankey-link')
             .attr('d', d3.sankeyLinkHorizontal())
             .attr('stroke', d => {
+                // Check for saved link color first
+                const linkKey = `${d.source.name}->${d.target.name}`;
+                if (savedLinkColors[linkKey]) {
+                    return savedLinkColors[linkKey];
+                }
+                // Otherwise use node color
                 const sourceNode = graph.nodes[d.source];
                 const sourceColor = sourceNode ? sourceNode.color : null;
                 return sourceColor || color(d.source);
             })
             .attr('stroke-width', d => Math.max(1, d.width))
             .attr('opacity', 0.5)
+            .attr('cursor', 'pointer')
+            .on('click', function(event, d) {
+                event.stopPropagation();
+                showLinkColorPicker(d, event);
+            })
+            .on('mouseenter', function() {
+                d3.select(this).attr('opacity', 0.8);
+            })
+            .on('mouseleave', function() {
+                d3.select(this).attr('opacity', 0.5);
+            })
             .append('title')
             .text(d => {
-                const sourceName = graph.nodes[d.source]?.name || d.source;
-                const targetName = graph.nodes[d.target]?.name || d.target;
-                return `${sourceName} → ${targetName}\n${d.value}`;
+                const sourceName = d.source.name;
+                const targetName = d.target.name;
+                return `${sourceName} → ${targetName}\n${d.value}\n\nClick to change color`;
             });
 
         // Track if we're actually dragging (to distinguish from clicks)
@@ -944,6 +1189,9 @@ document.getElementById('diagram-config').addEventListener('input', function() {
 document.getElementById('color-picker-apply').addEventListener('click', applyColor);
 document.getElementById('color-picker-cancel').addEventListener('click', hideColorPicker);
 
+// History popup handlers
+document.getElementById('history-close').addEventListener('click', hideHistoryTree);
+
 // Hide color picker when clicking outside
 document.addEventListener('click', function(event) {
     const popup = document.getElementById('color-picker-popup');
@@ -951,10 +1199,14 @@ document.addEventListener('click', function(event) {
 
     if (popup.style.display === 'block' &&
         !popup.contains(event.target) &&
-        !event.target.closest('.node')) {
+        !event.target.closest('.node') &&
+        !event.target.closest('.sankey-link')) {
         hideColorPicker();
     }
 });
+
+// Initialize autosave
+toggleAutosave();
 
 // Save form handler
 document.getElementById('save-diagram-form').addEventListener('submit', function(e) {
