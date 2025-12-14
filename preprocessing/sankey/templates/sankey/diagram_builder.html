@@ -1,0 +1,119 @@
+{% extends 'articles/base.html' %}
+{% load static %}
+
+{% block title %}{% if is_edit %}Edit{% else %}Build{% endif %} Sankey Diagram{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2><i class="bi bi-diagram-3"></i> {% if is_edit %}Edit{% else %}Build{% endif %} Sankey Diagram</h2>
+
+        <!-- Save Form -->
+        <div class="card mb-3 border-primary">
+            <div class="card-header">
+                <i class="bi bi-save"></i> Save Diagram
+            </div>
+            <div class="card-body">
+                <form method="post" id="save-diagram-form">
+                    {% csrf_token %}
+                    <div class="row g-3">
+                        <div class="col-md-4">
+                            <label for="diagram-name" class="form-label">Diagram Name *</label>
+                            <input type="text" class="form-control" id="diagram-name" name="name"
+                                   value="{{ diagram.name|default:'' }}" required
+                                   placeholder="Enter diagram name">
+                        </div>
+                        <div class="col-md-6">
+                            <label for="diagram-description" class="form-label">Description</label>
+                            <input type="text" class="form-control" id="diagram-description" name="description"
+                                   value="{{ diagram.description|default:'' }}"
+                                   placeholder="Optional description">
+                        </div>
+                        <div class="col-md-2 d-flex align-items-end">
+                            <button type="submit" class="btn btn-success w-100">
+                                <i class="bi bi-save"></i> Save
+                            </button>
+                        </div>
+                    </div>
+                    <input type="hidden" id="config-text-input" name="config_text" value="{{ diagram.config_text|default:'' }}">
+                    <input type="hidden" id="settings-json-input" name="settings_json" value="{}">
+                </form>
+            </div>
+        </div>
+
+        <!-- SankeyMatic Interface -->
+        <div class="card">
+            <div class="card-header d-flex justify-content-between align-items-center">
+                <span><i class="bi bi-diagram-3-fill"></i> Diagram Builder</span>
+                <div>
+                    <a href="{% url 'sankey_list' %}" class="btn btn-sm btn-secondary">
+                        <i class="bi bi-arrow-left"></i> Back to List
+                    </a>
+                    <button type="button" class="btn btn-sm btn-info" id="load-from-save">
+                        <i class="bi bi-arrow-clockwise"></i> Load Saved Config
+                    </button>
+                </div>
+            </div>
+            <div class="card-body p-0">
+                <iframe id="sankeymatic-frame" src="{% static 'sankeymatic/index.html' %}"
+                        style="width: 100%; height: 85vh; border: none;">
+                </iframe>
+            </div>
+        </div>
+
+        <!-- Attribution -->
+        <div class="alert alert-info mt-3">
+            <strong>Powered by SankeyMatic:</strong> Copyright © 2014-2024 Steve Bogart
+            &lt;sbogart@sankeymatic.com&gt;.
+            Licensed under the ISC License.
+            <a href="https://github.com/nowthis/sankeymatic" target="_blank" class="alert-link">
+                View on GitHub <i class="bi bi-box-arrow-up-right"></i>
+            </a>
+        </div>
+    </div>
+</div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const iframe = document.getElementById('sankeymatic-frame');
+    const saveForm = document.getElementById('save-diagram-form');
+    const configInput = document.getElementById('config-text-input');
+    const loadBtn = document.getElementById('load-from-save');
+
+    // Load saved config into iframe when requested
+    if (loadBtn) {
+        loadBtn.addEventListener('click', function() {
+            const savedConfig = configInput.value;
+            if (savedConfig) {
+                // Try to communicate with iframe to load config
+                // Note: This requires cross-origin communication setup
+                alert('Saved configuration:\n' + savedConfig.substring(0, 200) + '...\n\nCopy this and paste it into the input field in the diagram builder.');
+            } else {
+                alert('No saved configuration found. Create your diagram and save it first.');
+            }
+        });
+    }
+
+    // Before saving, try to get config from iframe
+    saveForm.addEventListener('submit', function(e) {
+        const manualConfig = prompt('Please paste your Sankey diagram configuration text here:\n\n(Copy it from the input field in the diagram builder above)');
+
+        if (manualConfig && manualConfig.trim()) {
+            configInput.value = manualConfig.trim();
+        } else if (!configInput.value) {
+            alert('Please provide the diagram configuration text to save.');
+            e.preventDefault();
+            return false;
+        }
+    });
+
+    // If editing, show saved config info
+    {% if diagram %}
+    console.log('Editing diagram: {{ diagram.name }}');
+    console.log('Saved config length: {{ diagram.config_text|length }} characters');
+    {% endif %}
+});
+</script>
+{% endblock %}

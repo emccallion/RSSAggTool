@@ -40,6 +40,7 @@ INSTALLED_APPS = [
     'articles',
     'aggregator',
     'feeds',
+    'sankey',
 ]
 
 MIDDLEWARE = [

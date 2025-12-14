@@ -1,0 +1,127 @@
+{% extends 'articles/base.html' %}
+
+{% block title %}Sankey Diagrams - News Preprocessing{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2><i class="bi bi-diagram-3"></i> Sankey Diagrams</h2>
+
+        <!-- Statistics -->
+        <div class="row mt-4">
+            <div class="col-md-4 mb-3">
+                <div class="card stat-card stat-card-primary">
+                    <div class="card-body text-center">
+                        <h3 class="stat-number">{{ stats.total }}</h3>
+                        <p class="stat-label">Total Diagrams</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Button -->
+        <div class="mt-4">
+            <a href="{% url 'sankey_builder' %}" class="btn btn-success btn-lg">
+                <i class="bi bi-plus-circle"></i> Create New Diagram
+            </a>
+        </div>
+
+        <!-- Diagrams List -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <i class="bi bi-table"></i> Your Diagrams ({{ page_obj.paginator.count }} total)
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Name</th>
+                                <th>Description</th>
+                                <th>Created</th>
+                                <th>Updated</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for diagram in diagrams %}
+                            <tr>
+                                <td><strong>{{ diagram.name }}</strong></td>
+                                <td>{{ diagram.description|truncatewords:20 }}</td>
+                                <td><small>{{ diagram.created_at|date:"M d, Y" }}</small></td>
+                                <td><small>{{ diagram.updated_at|date:"M d, Y" }}</small></td>
+                                <td>
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <a href="{% url 'sankey_view' diagram.pk %}" class="btn btn-outline-primary" title="View">
+                                            <i class="bi bi-eye"></i>
+                                        </a>
+                                        <a href="{% url 'sankey_builder_edit' diagram.pk %}" class="btn btn-outline-secondary" title="Edit">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <form method="post" action="{% url 'sankey_delete' diagram.pk %}" style="display: inline;" onsubmit="return confirm('Are you sure you want to delete this diagram?');">
+                                            {% csrf_token %}
+                                            <button type="submit" class="btn btn-outline-danger btn-sm" title="Delete">
+                                                <i class="bi bi-trash"></i>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="5" class="text-center text-muted py-4">
+                                    <i class="bi bi-inbox"></i> No diagrams yet. <a href="{% url 'sankey_builder' %}">Create your first one!</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        {% if is_paginated %}
+        <nav class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1">First</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                    </li>
+                {% endif %}
+
+                <li class="page-item active">
+                    <span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+                </li>
+
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+
+        <!-- Attribution -->
+        <div class="card mt-4 border-info">
+            <div class="card-body">
+                <h6><i class="bi bi-info-circle"></i> About SankeyMatic</h6>
+                <p class="mb-0">
+                    <small>
+                        Sankey diagram functionality powered by <strong>SankeyMatic</strong> by Steve Bogart.<br>
+                        Copyright (c) 2014-2024, Steve Bogart &lt;sbogart@sankeymatic.com&gt;<br>
+                        Licensed under the ISC License. <a href="https://github.com/nowthis/sankeymatic" target="_blank">View on GitHub</a>
+                    </small>
+                </p>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock %}
