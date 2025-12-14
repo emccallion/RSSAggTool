@@ -104,23 +104,60 @@ B [60] C
                     <small class="text-muted"><i class="bi bi-sliders"></i> Settings</small>
                 </div>
                 <div>
-                    <div class="mb-2">
-                        <label for="diagram-size" class="form-label small mb-1">Width</label>
-                        <select id="diagram-size" class="form-select form-select-sm" onchange="renderDiagram()">
-                            <option value="800">800px</option>
-                            <option value="1000">1000px</option>
-                            <option value="1200" selected>1200px</option>
-                            <option value="1400">1400px</option>
-                            <option value="1600">1600px</option>
-                        </select>
+                    <!-- Width Slider -->
+                    <div class="mb-3">
+                        <label for="diagram-width" class="form-label small mb-1">
+                            Width: <span id="width-value">1200</span>px
+                        </label>
+                        <input type="range" class="form-range" id="diagram-width"
+                               min="400" max="2400" step="100" value="1200"
+                               oninput="document.getElementById('width-value').textContent = this.value; renderDiagram()">
                     </div>
-                    <div class="mb-2">
-                        <label for="diagram-layout" class="form-label small mb-1">Layout</label>
-                        <select id="diagram-layout" class="form-select form-select-sm" onchange="renderDiagram()">
-                            <option value="horizontal" selected>Horizontal</option>
-                            <option value="vertical">Vertical</option>
-                        </select>
+
+                    <!-- Height Slider -->
+                    <div class="mb-3">
+                        <label for="diagram-height" class="form-label small mb-1">
+                            Height: <span id="height-value">600</span>px
+                        </label>
+                        <input type="range" class="form-range" id="diagram-height"
+                               min="300" max="2400" step="100" value="600"
+                               oninput="document.getElementById('height-value').textContent = this.value; renderDiagram()">
                     </div>
+
+                    <!-- Show Nodes Toggle -->
+                    <div class="mb-2 form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="show-nodes" checked onchange="renderDiagram()">
+                        <label class="form-check-label small" for="show-nodes">Show Node Bars</label>
+                    </div>
+
+                    <!-- Show Labels Toggle -->
+                    <div class="mb-2 form-check form-switch">
+                        <input class="form-check-input" type="checkbox" id="show-labels" checked onchange="renderDiagram()">
+                        <label class="form-check-label small" for="show-labels">Show Labels</label>
+                    </div>
+
+                    <!-- Label Position -->
+                    <div class="mb-3">
+                        <label class="form-label small mb-1">Label Position</label>
+                        <div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="label-position"
+                                       id="label-auto" value="auto" checked onchange="renderDiagram()">
+                                <label class="form-check-label small" for="label-auto">Auto</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="label-position"
+                                       id="label-left" value="left" onchange="renderDiagram()">
+                                <label class="form-check-label small" for="label-left">Left</label>
+                            </div>
+                            <div class="form-check form-check-inline">
+                                <input class="form-check-input" type="radio" name="label-position"
+                                       id="label-right" value="right" onchange="renderDiagram()">
+                                <label class="form-check-label small" for="label-right">Right</label>
+                            </div>
+                        </div>
+                    </div>
+
                     <button type="button" class="btn btn-primary btn-sm w-100" onclick="renderDiagram()">
                         <i class="bi bi-arrow-clockwise"></i> Update
                     </button>
@@ -308,11 +345,16 @@ function renderDiagram() {
             throw new Error('No valid flow definitions found. Use format: Source [amount] Target');
         }
 
+        // Get settings
+        const showNodes = document.getElementById('show-nodes').checked;
+        const showLabels = document.getElementById('show-labels').checked;
+        const labelPosition = document.querySelector('input[name="label-position"]:checked').value;
+
         // Clear preview and create SVG
         preview.innerHTML = '';
 
-        const width = parseInt(document.getElementById('diagram-size').value) || 800;
-        const height = Math.max(400, data.nodes.length * 40);
+        let width = parseInt(document.getElementById('diagram-width').value) || 1200;
+        let height = parseInt(document.getElementById('diagram-height').value) || 600;
 
         const svg = d3.select('#diagram-preview')
             .append('svg')
@@ -477,11 +519,22 @@ function renderDiagram() {
             linksGroup.selectAll('path')
                 .attr('d', d3.sankeyLinkHorizontal());
 
-            // Update label position
-            labelsGroup.selectAll('text')
-                .filter(n => n === d)
-                .attr('x', d.x0 < width / 2 ? d.x1 + 6 : d.x0 - 6)
-                .attr('y', (d.y1 + d.y0) / 2);
+            // Update label position (if labels are shown)
+            if (showLabels) {
+                labelsGroup.selectAll('text')
+                    .filter(n => n === d)
+                    .attr('x', () => {
+                        if (labelPosition === 'left') return d.x0 - 6;
+                        if (labelPosition === 'right') return d.x1 + 6;
+                        return d.x0 < width / 2 ? d.x1 + 6 : d.x0 - 6;
+                    })
+                    .attr('y', (d.y1 + d.y0) / 2)
+                    .attr('text-anchor', () => {
+                        if (labelPosition === 'left') return 'end';
+                        if (labelPosition === 'right') return 'start';
+                        return d.x0 < width / 2 ? 'start' : 'end';
+                    });
+            }
         }
 
         function dragEnded(event, d) {
@@ -507,10 +560,21 @@ function renderDiagram() {
             linksGroup.selectAll('path')
                 .attr('d', d3.sankeyLinkHorizontal());
 
-            // Update all labels
-            labelsGroup.selectAll('text')
-                .attr('x', n => n.x0 < width / 2 ? n.x1 + 6 : n.x0 - 6)
-                .attr('y', n => (n.y1 + n.y0) / 2);
+            // Update all labels (if labels are shown)
+            if (showLabels) {
+                labelsGroup.selectAll('text')
+                    .attr('x', n => {
+                        if (labelPosition === 'left') return n.x0 - 6;
+                        if (labelPosition === 'right') return n.x1 + 6;
+                        return n.x0 < width / 2 ? n.x1 + 6 : n.x0 - 6;
+                    })
+                    .attr('y', n => (n.y1 + n.y0) / 2)
+                    .attr('text-anchor', n => {
+                        if (labelPosition === 'left') return 'end';
+                        if (labelPosition === 'right') return 'start';
+                        return n.x0 < width / 2 ? 'start' : 'end';
+                    });
+            }
         }
 
         // Double-click to reset to original position
@@ -539,9 +603,21 @@ function renderDiagram() {
             // Update layout and labels
             sankey.update(graph);
             linksGroup.selectAll('path').attr('d', d3.sankeyLinkHorizontal());
-            labelsGroup.selectAll('text')
-                .attr('x', n => n.x0 < width / 2 ? n.x1 + 6 : n.x0 - 6)
-                .attr('y', n => (n.y1 + n.y0) / 2);
+
+            if (showLabels) {
+                labelsGroup.selectAll('text')
+                    .attr('x', n => {
+                        if (labelPosition === 'left') return n.x0 - 6;
+                        if (labelPosition === 'right') return n.x1 + 6;
+                        return n.x0 < width / 2 ? n.x1 + 6 : n.x0 - 6;
+                    })
+                    .attr('y', n => (n.y1 + n.y0) / 2)
+                    .attr('text-anchor', n => {
+                        if (labelPosition === 'left') return 'end';
+                        if (labelPosition === 'right') return 'start';
+                        return n.x0 < width / 2 ? 'start' : 'end';
+                    });
+            }
         }
 
         // Add draggable node groups
@@ -560,37 +636,88 @@ function renderDiagram() {
                 .on('end', dragEnded))
             .on('dblclick', doubleClicked);
 
-        // Add node rectangles
-        nodeElements.append('rect')
-            .attr('x', d => d.x0)
-            .attr('y', d => d.y0)
-            .attr('height', d => d.y1 - d.y0)
-            .attr('width', d => d.x1 - d.x0)
-            .attr('fill', d => d.color || color(d.name))
-            .attr('opacity', 0.8)
-            .attr('stroke', '#fff')
-            .attr('stroke-width', 1)
-            .append('title')
-            .text(d => `${d.name}\n${d.value}\n\nDrag to move • Shift+drag for straight lines • Double-click to reset`);
+        // Add node rectangles (if enabled)
+        if (showNodes) {
+            nodeElements.append('rect')
+                .attr('x', d => d.x0)
+                .attr('y', d => d.y0)
+                .attr('height', d => d.y1 - d.y0)
+                .attr('width', d => d.x1 - d.x0)
+                .attr('fill', d => d.color || color(d.name))
+                .attr('opacity', 0.8)
+                .attr('stroke', '#fff')
+                .attr('stroke-width', 1)
+                .append('title')
+                .text(d => `${d.name}\n${d.value}\n\nDrag to move • Shift+drag for straight lines • Double-click to reset`);
+        } else {
+            // Add invisible hitbox for dragging when nodes are hidden
+            nodeElements.append('rect')
+                .attr('x', d => d.x0)
+                .attr('y', d => d.y0)
+                .attr('height', d => d.y1 - d.y0)
+                .attr('width', d => d.x1 - d.x0)
+                .attr('fill', 'transparent')
+                .attr('stroke', 'transparent')
+                .append('title')
+                .text(d => `${d.name}\n${d.value}\n\nDrag to move • Shift+drag for straight lines • Double-click to reset`);
+        }
 
-        // Add labels
+        // Add labels (if enabled)
         const labelsGroup = svg.append('g')
             .attr('id', 'labels-group')
             .style('font', '12px sans-serif')
             .style('pointer-events', 'none');
 
-        labelsGroup
-            .selectAll('text')
-            .data(graph.nodes)
-            .join('text')
-            .attr('x', d => d.x0 < width / 2 ? d.x1 + 6 : d.x0 - 6)
-            .attr('y', d => (d.y1 + d.y0) / 2)
-            .attr('dy', '0.35em')
-            .attr('text-anchor', d => d.x0 < width / 2 ? 'start' : 'end')
-            .text(d => d.name)
-            .append('tspan')
-            .attr('fill-opacity', 0.7)
-            .text(d => ` ${d.value}`);
+        if (showLabels) {
+            const labelElements = labelsGroup
+                .selectAll('text')
+                .data(graph.nodes)
+                .join('text')
+                .attr('x', d => {
+                    if (labelPosition === 'left') return d.x0 - 6;
+                    if (labelPosition === 'right') return d.x1 + 6;
+                    return d.x0 < width / 2 ? d.x1 + 6 : d.x0 - 6;
+                })
+                .attr('y', d => (d.y1 + d.y0) / 2)
+                .attr('dy', '0.35em')
+                .attr('text-anchor', d => {
+                    if (labelPosition === 'left') return 'end';
+                    if (labelPosition === 'right') return 'start';
+                    return d.x0 < width / 2 ? 'start' : 'end';
+                })
+                .text(d => d.name)
+                .append('tspan')
+                .attr('fill-opacity', 0.7)
+                .text(d => ` ${d.value}`);
+
+            // Calculate label bounds and auto-resize if needed
+            let minX = 0;
+            let maxX = width;
+
+            labelsGroup.selectAll('text').each(function(d) {
+                const bbox = this.getBBox();
+                minX = Math.min(minX, bbox.x);
+                maxX = Math.max(maxX, bbox.x + bbox.width);
+            });
+
+            // Add padding if labels overflow
+            const leftOverflow = Math.max(0, -minX);
+            const rightOverflow = Math.max(0, maxX - width);
+
+            if (leftOverflow > 0 || rightOverflow > 0) {
+                const newWidth = width + leftOverflow + rightOverflow;
+                const offsetX = leftOverflow;
+
+                // Update SVG width and viewBox
+                svg.attr('width', newWidth)
+                   .attr('viewBox', [0, 0, newWidth, height]);
+
+                // Shift everything if there's left overflow
+                if (offsetX > 0) {
+                    svg.selectAll('g').attr('transform', `translate(${offsetX},0)`);
+                }
+            }
+        }
 
     } catch (e) {
         errorText.textContent = e.message;
@@ -625,8 +752,11 @@ document.getElementById('save-diagram-form').addEventListener('submit', function
 
     // Get settings
     const settings = {
-        size: document.getElementById('diagram-size').value,
-        layout: document.getElementById('diagram-layout').value
+        width: document.getElementById('diagram-width').value,
+        height: document.getElementById('diagram-height').value,
+        showNodes: document.getElementById('show-nodes').checked,
+        showLabels: document.getElementById('show-labels').checked,
+        labelPosition: document.querySelector('input[name="label-position"]:checked').value
     };
     document.getElementById('settings-json-input').value = JSON.stringify(settings);
 });
@@ -689,6 +819,31 @@ function downloadPNG() {
 // Initial render if editing
 {% if diagram %}
 document.addEventListener('DOMContentLoaded', function() {
+    // Restore settings if available
+    {% if diagram.settings_json %}
+    try {
+        const settings = {{ diagram.settings_json|safe }};
+        if (settings.width) {
+            document.getElementById('diagram-width').value = settings.width;
+            document.getElementById('width-value').textContent = settings.width;
+        }
+        if (settings.height) {
+            document.getElementById('diagram-height').value = settings.height;
+            document.getElementById('height-value').textContent = settings.height;
+        }
+        if (typeof settings.showNodes !== 'undefined') {
+            document.getElementById('show-nodes').checked = settings.showNodes;
+        }
+        if (typeof settings.showLabels !== 'undefined') {
+            document.getElementById('show-labels').checked = settings.showLabels;
+        }
+        if (settings.labelPosition) {
+            document.getElementById('label-' + settings.labelPosition).checked = true;
+        }
+    } catch (e) {
+        console.error('Error loading settings:', e);
+    }
+    {% endif %}
     renderDiagram();
 });
 {% endif %}
