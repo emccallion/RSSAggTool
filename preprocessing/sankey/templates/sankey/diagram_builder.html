@@ -364,13 +364,29 @@ function renderDiagram() {
         // Color scale
         const color = d3.scaleOrdinal(d3.schemeCategory10);
 
-        // Add links
-        svg.append('g')
-            .attr('fill', 'none')
-            .selectAll('g')
+        // Store original positions for dragging
+        graph.nodes.forEach(d => {
+            d.origX = d.x0;
+            d.origY = d.y0;
+            d.lastX = d.x0;
+            d.lastY = d.y0;
+        });
+
+        // Add helper layer (for drag guides)
+        const helperLayer = svg.append('g')
+            .attr('id', 'helper-layer')
+            .style('pointer-events', 'none');
+
+        // Add links group
+        const linksGroup = svg.append('g')
+            .attr('id', 'links-group')
+            .attr('fill', 'none');
+
+        const links_paths = linksGroup
+            .selectAll('path')
             .data(graph.links)
-            .join('g')
-            .append('path')
+            .join('path')
+            .attr('class', 'sankey-link')
             .attr('d', d3.sankeyLinkHorizontal())
             .attr('stroke', d => {
                 const sourceNode = graph.nodes[d.source];
@@ -386,23 +402,179 @@ function renderDiagram() {
                 return `${sourceName} → ${targetName}\n${d.value}`;
             });
 
-        // Add nodes
-        svg.append('g')
-            .selectAll('rect')
+        // Drag handlers
+        function dragStarted(event, d) {
+            helperLayer.selectAll('*').remove();
+
+            // Draw guide lines
+            helperLayer.append('line')
+                .attr('x1', 0).attr('x2', width)
+                .attr('y1', d.y0).attr('y2', d.y0)
+                .attr('stroke', '#999')
+                .attr('stroke-width', 1)
+                .attr('stroke-dasharray', '3,3')
+                .attr('opacity', 0.5);
+
+            helperLayer.append('line')
+                .attr('x1', d.x0).attr('x2', d.x0)
+                .attr('y1', 0).attr('y2', height)
+                .attr('stroke', '#999')
+                .attr('stroke-width', 1)
+                .attr('stroke-dasharray', '3,3')
+                .attr('opacity', 0.5);
+
+            // Ghost rectangle at original position
+            helperLayer.append('rect')
+                .attr('x', d.origX)
+                .attr('y', d.origY)
+                .attr('width', d.x1 - d.x0)
+                .attr('height', d.y1 - d.y0)
+                .attr('fill', d.color || color(d.name))
+                .attr('opacity', 0.2)
+                .attr('stroke', '#666')
+                .attr('stroke-dasharray', '2,2');
+
+            // Show shift hint if not pressed
+            if (!event.sourceEvent?.shiftKey) {
+                helperLayer.append('text')
+                    .attr('x', width / 2)
+                    .attr('y', 20)
+                    .attr('text-anchor', 'middle')
+                    .attr('fill', '#666')
+                    .attr('font-size', '14px')
+                    .text('Hold Shift to move in only one direction');
+            }
+        }
+
+        function dragged(event, d) {
+            let newX = event.x;
+            let newY = event.y;
+
+            // Shift key detection for constrained dragging
+            if (event.sourceEvent?.shiftKey) {
+                // Remove shift hint
+                helperLayer.selectAll('text').remove();
+
+                // Determine dominant direction
+                const deltaX = Math.abs(newX - d.lastX);
+                const deltaY = Math.abs(newY - d.lastY);
+
+                if (deltaX > deltaY) {
+                    newY = d.y0; // Constrain to horizontal
+                } else {
+                    newX = d.x0; // Constrain to vertical
+                }
+            }
+
+            // Constrain to graph bounds
+            const nodeWidth = d.x1 - d.x0;
+            const nodeHeight = d.y1 - d.y0;
+            newX = Math.max(1, Math.min(width - nodeWidth - 1, newX));
+            newY = Math.max(1, Math.min(height - nodeHeight - 1, newY));
+
+            // Update node position
+            d.x0 = newX;
+            d.x1 = newX + nodeWidth;
+            d.y0 = newY;
+            d.y1 = newY + nodeHeight;
+
+            // Update visuals
+            d3.select(event.sourceEvent.target.parentNode)
+                .select('rect')
+                .attr('x', d.x0)
+                .attr('y', d.y0);
+
+            // Recalculate and redraw links
+            sankey.update(graph);
+            linksGroup.selectAll('path')
+                .attr('d', d3.sankeyLinkHorizontal());
+
+            // Update labels
+            labelsGroup.selectAll('text')
+                .filter(n => n === d)
+                .attr('x', d.x0 < width / 2 ? d.x1 + 6 : d.x0 - 6)
+                .attr('y', (d.y1 + d.y0) / 2);
+        }
+
+        function dragEnded(event, d) {
+            // Clean up helpers
+            helperLayer.selectAll('*').remove();
+
+            // Remember last position for shift-constrained drags
+            d.lastX = d.x0;
+            d.lastY = d.y0;
+
+            // Final relayout
+            sankey.update(graph);
+            linksGroup.selectAll('path')
+                .attr('d', d3.sankeyLinkHorizontal());
+
+            // Update labels
+            labelsGroup.selectAll('text')
+                .attr('x', n => n.x0 < width / 2 ? n.x1 + 6 : n.x0 - 6)
+                .attr('y', n => (n.y1 + n.y0) / 2);
+        }
+
+        // Double-click to reset
+        function doubleClicked(event, d) {
+            const nodeWidth = d.x1 - d.x0;
+            const nodeHeight = d.y1 - d.y0;
+
+            d.x0 = d.origX;
+            d.y0 = d.origY;
+            d.x1 = d.origX + nodeWidth;
+            d.y1 = d.origY + nodeHeight;
+            d.lastX = d.origX;
+            d.lastY = d.origY;
+
+            // Update node rectangle
+            d3.select(event.target)
+                .attr('x', d.x0)
+                .attr('y', d.y0);
+
+            sankey.update(graph);
+            linksGroup.selectAll('path').attr('d', d3.sankeyLinkHorizontal());
+            labelsGroup.selectAll('text')
+                .attr('x', n => n.x0 < width / 2 ? n.x1 + 6 : n.x0 - 6)
+                .attr('y', n => (n.y1 + n.y0) / 2);
+        }
+
+        // Add draggable node groups
+        const nodesGroup = svg.append('g')
+            .attr('id', 'nodes-group');
+
+        const nodeElements = nodesGroup
+            .selectAll('g')
             .data(graph.nodes)
-            .join('rect')
+            .join('g')
+            .attr('class', 'node')
+            .attr('cursor', 'move')
+            .call(d3.drag()
+                .on('start', dragStarted)
+                .on('drag', dragged)
+                .on('end', dragEnded))
+            .on('dblclick', doubleClicked);
+
+        // Add node rectangles
+        nodeElements.append('rect')
             .attr('x', d => d.x0)
             .attr('y', d => d.y0)
             .attr('height', d => d.y1 - d.y0)
             .attr('width', d => d.x1 - d.x0)
             .attr('fill', d => d.color || color(d.name))
             .attr('opacity', 0.8)
+            .attr('stroke', '#fff')
+            .attr('stroke-width', 1)
             .append('title')
-            .text(d => `${d.name}\n${d.value}`);
+            .text(d => `${d.name}\n${d.value}\n\nDrag to move • Shift+drag for straight lines • Double-click to reset`);
 
         // Add labels
-        svg.append('g')
+        const labelsGroup = svg.append('g')
+            .attr('id', 'labels-group')
             .style('font', '12px sans-serif')
+            .style('pointer-events', 'none');
+
+        labelsGroup
             .selectAll('text')
             .data(graph.nodes)
             .join('text')
