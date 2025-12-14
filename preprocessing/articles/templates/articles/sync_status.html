@@ -9,38 +9,29 @@
 
         <div class="row mt-4">
             <!-- Database Statistics -->
-            <div class="col-md-4">
-                <div class="card">
-                    <div class="card-header bg-primary text-white">
-                        <h5><i class="bi bi-database-fill"></i> Total Articles</h5>
-                    </div>
+            <div class="col-md-4 mb-3">
+                <div class="card stat-card stat-card-primary">
                     <div class="card-body text-center">
-                        <h1>{{ total_articles }}</h1>
-                        <p>Articles in database</p>
+                        <h3 class="stat-number">{{ total_articles }}</h3>
+                        <p class="stat-label">Total Articles</p>
                     </div>
                 </div>
             </div>
 
-            <div class="col-md-4">
-                <div class="card">
-                    <div class="card-header bg-warning text-dark">
-                        <h5><i class="bi bi-exclamation-circle"></i> New Articles</h5>
-                    </div>
+            <div class="col-md-4 mb-3">
+                <div class="card stat-card stat-card-warning">
                     <div class="card-body text-center">
-                        <h1>{{ new_articles }}</h1>
-                        <p>Awaiting review</p>
+                        <h3 class="stat-number">{{ new_articles }}</h3>
+                        <p class="stat-label">New Articles</p>
                     </div>
                 </div>
             </div>
 
-            <div class="col-md-4">
-                <div class="card">
-                    <div class="card-header bg-success text-white">
-                        <h5><i class="bi bi-check-circle"></i> Processed</h5>
-                    </div>
+            <div class="col-md-4 mb-3">
+                <div class="card stat-card stat-card-success">
                     <div class="card-body text-center">
-                        <h1>{{ processed_articles }}</h1>
-                        <p>Articles processed</p>
+                        <h3 class="stat-number">{{ processed_articles }}</h3>
+                        <p class="stat-label">Processed</p>
                     </div>
                 </div>
             </div>

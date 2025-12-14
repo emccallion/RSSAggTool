@@ -8,36 +8,36 @@
         <h2>Preprocessing Articles</h2>
 
         <!-- Statistics -->
-        <div class="row mb-3">
-            <div class="col-md-3">
-                <div class="card text-center">
-                    <div class="card-body">
-                        <h5 class="card-title">{{ stats.total }}</h5>
-                        <p class="card-text">Total Articles</p>
+        <div class="row mb-4">
+            <div class="col-md-3 mb-3">
+                <div class="card stat-card stat-card-primary">
+                    <div class="card-body text-center">
+                        <h3 class="stat-number">{{ stats.total }}</h3>
+                        <p class="stat-label">Total Articles</p>
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="card text-center border-primary">
-                    <div class="card-body">
-                        <h5 class="card-title text-primary">{{ stats.new }}</h5>
-                        <p class="card-text">New</p>
+            <div class="col-md-3 mb-3">
+                <div class="card stat-card stat-card-info">
+                    <div class="card-body text-center">
+                        <h3 class="stat-number">{{ stats.new }}</h3>
+                        <p class="stat-label">New</p>
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="card text-center border-success">
-                    <div class="card-body">
-                        <h5 class="card-title text-success">{{ stats.processed }}</h5>
-                        <p class="card-text">Processed</p>
+            <div class="col-md-3 mb-3">
+                <div class="card stat-card stat-card-success">
+                    <div class="card-body text-center">
+                        <h3 class="stat-number">{{ stats.processed }}</h3>
+                        <p class="stat-label">Processed</p>
                     </div>
                 </div>
             </div>
-            <div class="col-md-3">
-                <div class="card text-center border-danger">
-                    <div class="card-body">
-                        <h5 class="card-title text-danger">{{ stats.rejected }}</h5>
-                        <p class="card-text">Rejected</p>
+            <div class="col-md-3 mb-3">
+                <div class="card stat-card stat-card-warning">
+                    <div class="card-body text-center">
+                        <h3 class="stat-number">{{ stats.rejected }}</h3>
+                        <p class="stat-label">Rejected</p>
                     </div>
                 </div>
             </div>
@@ -93,19 +93,26 @@
         <!-- Bulk Actions -->
         <form method="post" id="bulk-action-form">
             {% csrf_token %}
-            <div class="card mb-3">
+            <div class="card mb-3 border-primary">
+                <div class="card-header">
+                    <i class="bi bi-check2-square"></i> Bulk Actions
+                    <small class="text-muted ms-2">(Select articles below and choose an action)</small>
+                </div>
                 <div class="card-body">
-                    <div class="row g-2">
+                    <div class="row g-3">
                         <div class="col-md-3">
+                            <label for="id_action" class="form-label">Action</label>
                             {{ bulk_form.action }}
                         </div>
                         <div class="col-md-3">
+                            <label for="id_storygroup" class="form-label">Story Group (Optional)</label>
                             {{ bulk_form.storygroup }}
                         </div>
                         <div class="col-md-3">
+                            <label for="id_modified_by" class="form-label">Modified By (Optional)</label>
                             {{ bulk_form.modified_by }}
                         </div>
-                        <div class="col-md-3">
+                        <div class="col-md-3 d-flex align-items-end">
                             <button type="submit" class="btn btn-success w-100" id="apply-bulk-action">
                                 <i class="bi bi-check2-all"></i> Apply to Selected
                             </button>
@@ -116,8 +123,8 @@
 
             <!-- Article Table -->
             <div class="table-responsive">
-                <table class="table table-striped table-hover">
-                    <thead class="table-dark">
+                <table class="table table-hover">
+                    <thead>
                         <tr>
                             <th><input type="checkbox" id="select-all"></th>
                             <th>Status</th>
