@@ -188,7 +188,7 @@ B [20] D
 {% block extra_js %}
 <!-- Load D3.js and D3-sankey plugin -->
 <script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/d3-sankey@0.12"></script>
+<script src="https://cdn.jsdelivr.net/npm/d3-sankey@0.12/dist/d3-sankey.min.js"></script>
 
 <script>
 // Template configurations
@@ -343,11 +343,23 @@ function renderDiagram() {
             .nodePadding(10)
             .extent([[1, 5], [width - 1, height - 5]]);
 
-        // Generate the sankey diagram layout
-        const {nodes, links} = sankey({
-            nodes: data.nodes.map(d => Object.assign({}, d)),
-            links: data.links.map(d => Object.assign({}, d))
+        // Prepare nodes and links for d3-sankey
+        // d3-sankey expects links to reference nodes by index or object
+        const nodeMap = new Map();
+        const nodes = data.nodes.map((d, i) => {
+            const node = Object.assign({}, d);
+            nodeMap.set(d.name, i);
+            return node;
         });
+
+        const links = data.links.map(d => ({
+            source: nodeMap.get(d.source),
+            target: nodeMap.get(d.target),
+            value: d.value
+        }));
+
+        // Generate the sankey diagram layout
+        const graph = sankey({nodes, links});
 
         // Color scale
         const color = d3.scaleOrdinal(d3.schemeCategory10);
@@ -356,23 +368,28 @@ function renderDiagram() {
         svg.append('g')
             .attr('fill', 'none')
             .selectAll('g')
-            .data(links)
+            .data(graph.links)
             .join('g')
             .append('path')
             .attr('d', d3.sankeyLinkHorizontal())
             .attr('stroke', d => {
-                const sourceColor = d.source.color;
-                return sourceColor || color(d.source.name);
+                const sourceNode = graph.nodes[d.source];
+                const sourceColor = sourceNode ? sourceNode.color : null;
+                return sourceColor || color(d.source);
             })
             .attr('stroke-width', d => Math.max(1, d.width))
             .attr('opacity', 0.5)
             .append('title')
-            .text(d => `${d.source.name} → ${d.target.name}\n${d.value}`);
+            .text(d => {
+                const sourceName = graph.nodes[d.source]?.name || d.source;
+                const targetName = graph.nodes[d.target]?.name || d.target;
+                return `${sourceName} → ${targetName}\n${d.value}`;
+            });
 
         // Add nodes
         svg.append('g')
             .selectAll('rect')
-            .data(nodes)
+            .data(graph.nodes)
             .join('rect')
             .attr('x', d => d.x0)
             .attr('y', d => d.y0)
@@ -387,7 +404,7 @@ function renderDiagram() {
         svg.append('g')
             .style('font', '12px sans-serif')
             .selectAll('text')
-            .data(nodes)
+            .data(graph.nodes)
             .join('text')
             .attr('x', d => d.x0 < width / 2 ? d.x1 + 6 : d.x0 - 6)
             .attr('y', d => (d.y1 + d.y0) / 2)
