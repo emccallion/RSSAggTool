@@ -281,6 +281,7 @@ Budget [200] Savings
 
 let renderTimeout = null;
 let currentColorNode = null;
+let savedNodePositions = {}; // Store custom node positions
 
 // Load a template
 function loadTemplate(templateName) {
@@ -380,6 +381,7 @@ function updateConfigWithColors() {
 function clearConfig() {
     if (confirm('Clear all configuration?')) {
         document.getElementById('diagram-config').value = '';
+        savedNodePositions = {}; // Clear saved positions
         document.getElementById('diagram-preview').innerHTML = `
             <div class="text-muted py-5">
                 <i class="bi bi-diagram-3 display-1"></i>
@@ -489,13 +491,24 @@ function renderDiagram() {
         const sankey = d3.sankey()
             .nodeWidth(showNodes ? nodeWidth : 0)
             .nodePadding(nodePadding)
-            .extent([[1, 5], [width - 1, height - 5]]);
+            .extent([[1, 5], [width - 1, height - 5]])
+            .nodeSort((a, b) => {
+                // Maintain order as they appear in the config
+                // This ensures child nodes stack in entry order
+                return 0; // Don't reorder - keep original parse order
+            })
+            .linkSort((a, b) => {
+                // Keep links in order they appear in config
+                // This ensures stacking matches config order
+                return 0;
+            });
 
         // Prepare nodes and links for d3-sankey
         // d3-sankey expects links to reference nodes by index or object
         const nodeMap = new Map();
         const nodes = data.nodes.map((d, i) => {
             const node = Object.assign({}, d);
+            node.index = i; // Store original index for ordering
             nodeMap.set(d.name, i);
             return node;
         });
@@ -508,6 +521,19 @@ function renderDiagram() {
 
         // Generate the sankey diagram layout
         const graph = sankey({nodes, links});
+
+        // Restore saved positions if they exist
+        graph.nodes.forEach(d => {
+            if (savedNodePositions[d.name]) {
+                const saved = savedNodePositions[d.name];
+                const nodeWidth = d.x1 - d.x0;
+                const nodeHeight = d.y1 - d.y0;
+                d.x0 = saved.x;
+                d.y0 = saved.y;
+                d.x1 = saved.x + nodeWidth;
+                d.y1 = saved.y + nodeHeight;
+            }
+        });
 
         // Color scale
         const color = d3.scaleOrdinal(d3.schemeCategory10);
@@ -666,6 +692,12 @@ function renderDiagram() {
             d.lastX = d.x0;
             d.lastY = d.y0;
 
+            // Save position for future renders
+            savedNodePositions[d.name] = {
+                x: d.x0,
+                y: d.y0
+            };
+
             // Final relayout
             sankey.update(graph);
             linksGroup.selectAll('path')
@@ -702,6 +734,9 @@ function renderDiagram() {
             d.origY = d.trueOrigY;
             d.lastX = d.trueOrigX;
             d.lastY = d.trueOrigY;
+
+            // Clear saved position
+            delete savedNodePositions[d.name];
 
             // Update rect position
             nodesGroup.selectAll('g')
