@@ -2,36 +2,6 @@ from django.db import models
 from django.utils import timezone
 
 
-class NewsArticle(models.Model):
-    """
-    Read-only model for articles from the news aggregator database.
-    Maps to the existing articles table in news.db.
-    """
-    id = models.AutoField(primary_key=True)
-    title = models.TextField()
-    link = models.TextField(unique=True)
-    description = models.TextField(blank=True, null=True)
-    summary = models.TextField(blank=True, null=True)
-    content = models.TextField(blank=True, null=True)
-    source = models.TextField()
-    category = models.TextField(blank=True, null=True)
-    feed_url = models.TextField(blank=True, null=True)
-    guid = models.TextField(blank=True, null=True)
-    author = models.TextField(blank=True, null=True)
-    published = models.DateTimeField(blank=True, null=True)
-    fetched_at = models.DateTimeField()
-    processed_at = models.DateTimeField(blank=True, null=True)
-    created_at = models.DateTimeField(blank=True, null=True)
-
-    class Meta:
-        managed = False  # Don't let Django manage this table
-        db_table = 'articles'  # Map to existing table name
-        ordering = ['-published']
-
-    def __str__(self):
-        return self.title
-
-
 class PreprocessingArticle(models.Model):
     """
     Preprocessing database model for article review and categorization.

@@ -22,5 +22,5 @@ echo "========================================="
 echo ""
 
 # Activate virtual environment and start server
-source ../venv/bin/activate
+source venv/bin/activate
 python manage.py runserver 0.0.0.0:8001

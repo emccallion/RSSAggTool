@@ -8,7 +8,7 @@ from django.http import JsonResponse
 from io import StringIO
 import sys
 
-from .models import PreprocessingArticle, NewsArticle
+from .models import PreprocessingArticle
 from .forms import ArticleFilterForm, ArticleEditForm, BulkActionForm
 
 
@@ -132,72 +132,52 @@ class ArticleDetailView(DetailView):
 
 
 class SyncView(View):
-    """View for syncing articles and running the aggregator."""
+    """View for fetching articles from RSS feeds."""
 
     template_name = 'articles/sync_status.html'
 
     def get(self, request):
-        """Display sync status and controls."""
-        # Get counts from both databases
+        """Display aggregator status and controls."""
         preprocessing_count = PreprocessingArticle.objects.count()
-
-        try:
-            news_count = NewsArticle.objects.using('news_aggregator').count()
-        except Exception as e:
-            news_count = 0
-            messages.warning(request, f'Could not access news aggregator database: {str(e)}')
+        new_count = PreprocessingArticle.objects.filter(outcome='NEW').count()
+        processed_count = PreprocessingArticle.objects.filter(outcome='processed').count()
 
         context = {
-            'preprocessing_count': preprocessing_count,
-            'news_count': news_count,
-            'difference': news_count - preprocessing_count if news_count >= preprocessing_count else 0,
+            'total_articles': preprocessing_count,
+            'new_articles': new_count,
+            'processed_articles': processed_count,
         }
 
         return render(request, self.template_name, context)
 
     def post(self, request):
-        """Handle sync actions."""
+        """Handle fetch articles action."""
         action = request.POST.get('action')
 
-        if action == 'run_aggregator':
-            return self.run_aggregator(request)
-        elif action == 'sync_articles':
-            return self.sync_articles(request)
+        if action == 'fetch_articles':
+            return self.fetch_articles(request)
 
         messages.error(request, 'Unknown action.')
         return redirect('sync_status')
 
-    def run_aggregator(self, request):
-        """Run the news aggregator service."""
+    def fetch_articles(self, request):
+        """Fetch new articles from RSS feeds."""
         try:
-            # Capture output
             output = StringIO()
-            call_command('run_aggregator', stdout=output)
-
-            messages.success(request, 'Aggregator executed successfully.')
-            messages.info(request, f'Output: {output.getvalue()[:500]}...')
-
-        except Exception as e:
-            messages.error(request, f'Error running aggregator: {str(e)}')
-
-        return redirect('sync_status')
-
-    def sync_articles(self, request):
-        """Sync articles from news.db."""
-        try:
-            # Capture output
-            output = StringIO()
-            call_command('sync_from_aggregator', stdout=output)
+            call_command('fetch_articles', stdout=output)
 
             output_str = output.getvalue()
-            messages.success(request, 'Sync completed successfully.')
 
-            # Parse output for summary
-            if 'New articles added:' in output_str:
-                messages.info(request, output_str.split('\n')[-2])
+            # Extract summary from output
+            if 'New articles:' in output_str:
+                for line in output_str.split('\n'):
+                    if 'New articles:' in line or 'Total in database:' in line:
+                        messages.info(request, line.strip())
+
+            messages.success(request, 'Articles fetched successfully!')
 
         except Exception as e:
-            messages.error(request, f'Error syncing articles: {str(e)}')
+            messages.error(request, f'Error fetching articles: {str(e)}')
 
         return redirect('sync_status')
 

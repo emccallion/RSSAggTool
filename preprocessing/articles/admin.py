@@ -1,5 +1,5 @@
 from django.contrib import admin
-from .models import PreprocessingArticle, NewsArticle
+from .models import PreprocessingArticle
 
 
 @admin.register(PreprocessingArticle)
@@ -76,53 +76,3 @@ class PreprocessingArticleAdmin(admin.ModelAdmin):
         count = queryset.update(outcome='NEW')
         self.message_user(request, f'{count} article(s) marked as new.')
     mark_as_new.short_description = 'Mark selected as New'
-
-
-@admin.register(NewsArticle)
-class NewsArticleAdmin(admin.ModelAdmin):
-    """Read-only admin interface for NewsArticle (from news.db)."""
-
-    list_display = [
-        'title_short',
-        'source',
-        'category',
-        'published',
-        'fetched_at',
-    ]
-
-    list_filter = [
-        'source',
-        'category',
-        'published',
-    ]
-
-    search_fields = [
-        'title',
-        'description',
-        'source',
-    ]
-
-    readonly_fields = [
-        'title', 'link', 'description', 'summary', 'content',
-        'source', 'category', 'feed_url', 'guid', 'author',
-        'published', 'fetched_at', 'processed_at', 'created_at'
-    ]
-
-    date_hierarchy = 'published'
-
-    def title_short(self, obj):
-        """Return shortened title for list display."""
-        return obj.title[:75] + '...' if len(obj.title) > 75 else obj.title
-    title_short.short_description = 'Title'
-
-    def has_add_permission(self, request):
-        """No adding articles directly (read-only from news.db)."""
-        return False
-
-    def has_delete_permission(self, request, obj=None):
-        """No deleting articles (read-only from news.db)."""
-        return False
-
-    def has_change_permission(self, request, obj=None):
-        """No changing articles (read-only from news.db)."""
-        return False

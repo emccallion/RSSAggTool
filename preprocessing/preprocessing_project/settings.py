@@ -38,6 +38,7 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'articles',
+    'aggregator',
 ]
 
 MIDDLEWARE = [
@@ -77,14 +78,8 @@ DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
         'NAME': BASE_DIR / 'data' / 'preprocessing.db',
-    },
-    'news_aggregator': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': BASE_DIR.parent / 'data' / 'news.db',
     }
 }
-
-DATABASE_ROUTERS = ['articles.routers.NewsAggregatorRouter']
 
 
 # Password validation
