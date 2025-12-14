@@ -1,0 +1,119 @@
+{% extends 'articles/base.html' %}
+
+{% block title %}{% if form.instance.pk %}Edit{% else %}Add{% endif %} RSS Feed - News Preprocessing{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12 col-lg-8 mx-auto">
+        <h2>
+            <i class="bi bi-rss-fill"></i>
+            {% if form.instance.pk %}
+                Edit RSS Feed
+            {% else %}
+                Add New RSS Feed
+            {% endif %}
+        </h2>
+
+        <div class="card mt-4">
+            <div class="card-header">
+                <i class="bi bi-form"></i> Feed Information
+            </div>
+            <div class="card-body">
+                <form method="post">
+                    {% csrf_token %}
+
+                    {% if form.errors %}
+                        <div class="alert alert-danger">
+                            <strong>Error:</strong> Please correct the errors below.
+                        </div>
+                    {% endif %}
+
+                    <div class="mb-3">
+                        <label for="{{ form.source_name.id_for_label }}" class="form-label">
+                            Source Name <span class="text-danger">*</span>
+                        </label>
+                        {{ form.source_name }}
+                        {% if form.source_name.help_text %}
+                            <small class="form-text text-muted">{{ form.source_name.help_text }}</small>
+                        {% endif %}
+                        {% if form.source_name.errors %}
+                            <div class="text-danger">{{ form.source_name.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.url.id_for_label }}" class="form-label">
+                            RSS Feed URL <span class="text-danger">*</span>
+                        </label>
+                        {{ form.url }}
+                        {% if form.url.help_text %}
+                            <small class="form-text text-muted">{{ form.url.help_text }}</small>
+                        {% endif %}
+                        {% if form.url.errors %}
+                            <div class="text-danger">{{ form.url.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.category.id_for_label }}" class="form-label">
+                            Category <span class="text-danger">*</span>
+                        </label>
+                        {{ form.category }}
+                        {% if form.category.help_text %}
+                            <small class="form-text text-muted">{{ form.category.help_text }}</small>
+                        {% endif %}
+                        {% if form.category.errors %}
+                            <div class="text-danger">{{ form.category.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3">
+                        <label for="{{ form.description.id_for_label }}" class="form-label">
+                            Description
+                        </label>
+                        {{ form.description }}
+                        {% if form.description.help_text %}
+                            <small class="form-text text-muted">{{ form.description.help_text }}</small>
+                        {% endif %}
+                        {% if form.description.errors %}
+                            <div class="text-danger">{{ form.description.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="mb-3 form-check">
+                        {{ form.active }}
+                        <label class="form-check-label" for="{{ form.active.id_for_label }}">
+                            Active (fetch articles from this feed)
+                        </label>
+                        {% if form.active.errors %}
+                            <div class="text-danger">{{ form.active.errors }}</div>
+                        {% endif %}
+                    </div>
+
+                    <div class="d-flex justify-content-between">
+                        <button type="submit" class="btn btn-success">
+                            <i class="bi bi-check-circle"></i>
+                            {% if form.instance.pk %}Update{% else %}Add{% endif %} Feed
+                        </button>
+                        <a href="{% url 'feed_list' %}" class="btn btn-secondary">
+                            <i class="bi bi-x-circle"></i> Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        {% if form.instance.pk %}
+        <div class="card mt-4">
+            <div class="card-header bg-light">
+                <i class="bi bi-info-circle"></i> Feed Details
+            </div>
+            <div class="card-body">
+                <p><strong>Created:</strong> {{ form.instance.created_at|date:"F d, Y g:i A" }}</p>
+                <p><strong>Last Updated:</strong> {{ form.instance.updated_at|date:"F d, Y g:i A" }}</p>
+            </div>
+        </div>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

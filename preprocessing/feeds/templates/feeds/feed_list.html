@@ -1,0 +1,189 @@
+{% extends 'articles/base.html' %}
+
+{% block title %}Manage RSS Feeds - News Preprocessing{% endblock %}
+
+{% block content %}
+<div class="row">
+    <div class="col-12">
+        <h2><i class="bi bi-rss-fill"></i> RSS Feed Management</h2>
+
+        <!-- Statistics -->
+        <div class="row mt-4">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header bg-primary text-white">
+                        <h5><i class="bi bi-list-ul"></i> Total Feeds</h5>
+                    </div>
+                    <div class="card-body text-center">
+                        <h1>{{ stats.total }}</h1>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header bg-success text-white">
+                        <h5><i class="bi bi-check-circle"></i> Active Feeds</h5>
+                    </div>
+                    <div class="card-body text-center">
+                        <h1>{{ stats.active }}</h1>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-header bg-secondary text-white">
+                        <h5><i class="bi bi-x-circle"></i> Inactive Feeds</h5>
+                    </div>
+                    <div class="card-body text-center">
+                        <h1>{{ stats.inactive }}</h1>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Add Feed Button -->
+        <div class="mt-4">
+            <a href="{% url 'feed_add' %}" class="btn btn-success">
+                <i class="bi bi-plus-circle"></i> Add New RSS Feed
+            </a>
+        </div>
+
+        <!-- Filters -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <i class="bi bi-funnel"></i> Filter Feeds
+            </div>
+            <div class="card-body">
+                <form method="get" class="row g-3">
+                    <div class="col-md-3">
+                        <label for="active" class="form-label">Status</label>
+                        <select name="active" id="active" class="form-control">
+                            <option value="">All</option>
+                            <option value="true" {% if request.GET.active == 'true' %}selected{% endif %}>Active</option>
+                            <option value="false" {% if request.GET.active == 'false' %}selected{% endif %}>Inactive</option>
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="source" class="form-label">Source</label>
+                        <select name="source" id="source" class="form-control">
+                            <option value="">All Sources</option>
+                            {% for source in sources %}
+                                <option value="{{ source }}" {% if request.GET.source == source %}selected{% endif %}>{{ source }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3">
+                        <label for="category" class="form-label">Category</label>
+                        <select name="category" id="category" class="form-control">
+                            <option value="">All Categories</option>
+                            {% for cat in categories %}
+                                <option value="{{ cat }}" {% if request.GET.category == cat %}selected{% endif %}>{{ cat|title }}</option>
+                            {% endfor %}
+                        </select>
+                    </div>
+                    <div class="col-md-3 d-flex align-items-end">
+                        <button type="submit" class="btn btn-primary me-2">
+                            <i class="bi bi-search"></i> Filter
+                        </button>
+                        <a href="{% url 'feed_list' %}" class="btn btn-secondary">
+                            <i class="bi bi-x"></i> Clear
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- Feeds Table -->
+        <div class="card mt-4">
+            <div class="card-header">
+                <i class="bi bi-table"></i> RSS Feeds ({{ page_obj.paginator.count }} total)
+            </div>
+            <div class="card-body p-0">
+                <div class="table-responsive">
+                    <table class="table table-striped table-hover mb-0">
+                        <thead>
+                            <tr>
+                                <th>Status</th>
+                                <th>Source</th>
+                                <th>Category</th>
+                                <th>Feed URL</th>
+                                <th>Added</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for feed in feeds %}
+                            <tr>
+                                <td>
+                                    {% if feed.active %}
+                                        <span class="badge bg-success">✓ Active</span>
+                                    {% else %}
+                                        <span class="badge bg-secondary">✗ Inactive</span>
+                                    {% endif %}
+                                </td>
+                                <td><strong>{{ feed.source_name }}</strong></td>
+                                <td><span class="badge bg-info">{{ feed.category }}</span></td>
+                                <td>
+                                    <small>
+                                        <a href="{{ feed.url }}" target="_blank" class="text-decoration-none">
+                                            {{ feed.url|truncatechars:60 }}
+                                            <i class="bi bi-box-arrow-up-right"></i>
+                                        </a>
+                                    </small>
+                                </td>
+                                <td><small>{{ feed.created_at|date:"M d, Y" }}</small></td>
+                                <td>
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <a href="{% url 'feed_edit' feed.pk %}" class="btn btn-outline-primary">
+                                            <i class="bi bi-pencil"></i>
+                                        </a>
+                                        <a href="{% url 'feed_toggle' feed.pk %}" class="btn btn-outline-secondary">
+                                            <i class="bi bi-toggle-{% if feed.active %}on{% else %}off{% endif %}"></i>
+                                        </a>
+                                    </div>
+                                </td>
+                            </tr>
+                            {% empty %}
+                            <tr>
+                                <td colspan="6" class="text-center text-muted">
+                                    <i class="bi bi-inbox"></i> No feeds found. <a href="{% url 'feed_add' %}">Add one now</a>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <!-- Pagination -->
+        {% if is_paginated %}
+        <nav class="mt-4">
+            <ul class="pagination justify-content-center">
+                {% if page_obj.has_previous %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page=1">First</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.previous_page_number }}">Previous</a>
+                    </li>
+                {% endif %}
+
+                <li class="page-item active">
+                    <span class="page-link">Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>
+                </li>
+
+                {% if page_obj.has_next %}
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.next_page_number }}">Next</a>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="?page={{ page_obj.paginator.num_pages }}">Last</a>
+                    </li>
+                {% endif %}
+            </ul>
+        </nav>
+        {% endif %}
+    </div>
+</div>
+{% endblock %}

@@ -4,43 +4,25 @@ Integrated Django version - writes directly to PreprocessingArticle model.
 """
 import feedparser
 import requests
-import yaml
 import logging
 import time
 from datetime import datetime, timezone
 from typing import List, Dict, Optional
-from pathlib import Path
 from textblob import TextBlob
-from django.conf import settings
 
 
 logger = logging.getLogger(__name__)
 
 
 class FeedParser:
-    """RSS feed parser integrated with Django."""
+    """RSS feed parser integrated with Django - reads feeds from database."""
 
-    def __init__(self, config_path: str = None):
-        """Initialize the RSS feed parser with configuration."""
-        if config_path is None:
-            # Default to config/feeds.yaml in parent directory
-            config_path = Path(settings.BASE_DIR).parent / 'config' / 'feeds.yaml'
-
-        self.config_path = str(config_path)
-        self.feeds_config = self._load_config()
+    def __init__(self):
+        """Initialize the RSS feed parser."""
         self.session = requests.Session()
         self.session.headers.update({
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
         })
-
-    def _load_config(self) -> Dict:
-        """Load RSS feed configuration from YAML file."""
-        try:
-            with open(self.config_path, 'r') as file:
-                return yaml.safe_load(file)
-        except FileNotFoundError:
-            logger.error(f"Configuration file {self.config_path} not found")
-            return {"sources": {}}
 
     def parse_feed(self, feed_url: str, source_name: str, category: str) -> List[Dict]:
         """Parse a single RSS feed and return articles."""
@@ -107,25 +89,24 @@ class FeedParser:
             return None
 
     def parse_all_feeds(self) -> List[Dict]:
-        """Parse all configured RSS feeds and return all articles."""
+        """Parse all active RSS feeds from database and return all articles."""
+        from feeds.models import Feed
+
         all_articles = []
 
-        sources = self.feeds_config.get('sources', {})
+        # Get all active feeds from database
+        active_feeds = Feed.objects.filter(active=True).order_by('source_name', 'category')
 
-        for source_key, source_config in sources.items():
-            source_name = source_config.get('name', source_key)
-            feeds = source_config.get('feeds', [])
+        if not active_feeds.exists():
+            logger.warning("No active feeds found in database")
+            return all_articles
 
-            logger.info(f"Processing {len(feeds)} feeds for {source_name}")
+        logger.info(f"Processing {active_feeds.count()} active feeds")
 
-            for feed_config in feeds:
-                feed_url = feed_config.get('url')
-                category = feed_config.get('category', 'general')
-
-                if feed_url:
-                    articles = self.parse_feed(feed_url, source_name, category)
-                    all_articles.extend(articles)
-                    time.sleep(1)  # Be respectful to servers
+        for feed in active_feeds:
+            articles = self.parse_feed(feed.url, feed.source_name, feed.category)
+            all_articles.extend(articles)
+            time.sleep(1)  # Be respectful to servers
 
         logger.info(f"Total articles parsed: {len(all_articles)}")
         return all_articles
