@@ -49,105 +49,89 @@
 </div>
 
 <!-- Diagram Builder -->
-<div class="row">
-    <!-- Left Column: Editor -->
-    <div class="col-lg-6">
-        <div class="card mb-3">
-            <div class="card-header d-flex justify-content-between align-items-center">
-                <span><i class="bi bi-pencil-square"></i> Diagram Configuration</span>
-                <button type="button" class="btn btn-sm btn-outline-primary" data-bs-toggle="collapse" data-bs-target="#syntaxHelp">
-                    <i class="bi bi-question-circle"></i> Syntax Help
+<div class="row g-0">
+    <!-- Left Column: Editor (20%) -->
+    <div class="col-12 col-xl-2" style="border-right: 2px solid #dee2e6; height: calc(100vh - 200px); overflow-y: auto;">
+        <div class="p-2">
+            <div class="d-flex justify-content-between align-items-center mb-2">
+                <small class="text-muted"><i class="bi bi-pencil-square"></i> Configuration</small>
+                <button type="button" class="btn btn-xs btn-link p-0" data-bs-toggle="collapse" data-bs-target="#syntaxHelp">
+                    <i class="bi bi-question-circle"></i>
                 </button>
             </div>
-            <div class="card-body">
-                <textarea id="diagram-config" class="form-control font-monospace" rows="20"
-                          placeholder="Enter your flow definitions here...
+            <div>
+                <textarea id="diagram-config" class="form-control font-monospace" rows="30"
+                          placeholder="Flow definitions...
 
 Example:
-Source A [100] Target B
-Target B [75] Target C
-Target B [25] Target D
+A [100] B
+B [60] C
 
-// Use colors:
-:Source A #4A90E2
-:Target B #F5A623"
-                          style="resize: vertical;">{{ diagram.config_text|default:'' }}</textarea>
+:A #4A90E2"
+                          style="resize: vertical; font-size: 11px;">{{ diagram.config_text|default:'' }}</textarea>
 
-                <div class="mt-3">
-                    <label class="form-label">Quick Templates:</label>
-                    <div class="btn-group d-flex gap-2 flex-wrap" role="group">
-                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="loadTemplate('simple')">
-                            Simple Flow
+                <div class="mt-2">
+                    <label class="form-label small">Quick Templates:</label>
+                    <div class="d-grid gap-1">
+                        <button type="button" class="btn btn-xs btn-outline-secondary btn-sm" onclick="loadTemplate('simple')">
+                            Simple
                         </button>
-                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="loadTemplate('article')">
-                            Article Processing
+                        <button type="button" class="btn btn-xs btn-outline-secondary btn-sm" onclick="loadTemplate('article')">
+                            Article
                         </button>
-                        <button type="button" class="btn btn-sm btn-outline-secondary" onclick="loadTemplate('budget')">
-                            Budget Breakdown
+                        <button type="button" class="btn btn-xs btn-outline-secondary btn-sm" onclick="loadTemplate('budget')">
+                            Budget
                         </button>
-                        <button type="button" class="btn btn-sm btn-outline-danger" onclick="clearConfig()">
+                        <button type="button" class="btn btn-xs btn-outline-danger btn-sm" onclick="clearConfig()">
                             <i class="bi bi-trash"></i> Clear
                         </button>
                     </div>
                 </div>
 
-                <div class="collapse mt-3" id="syntaxHelp">
-                    <div class="card card-body bg-light">
-                        <h6><i class="bi bi-info-circle"></i> Syntax Reference</h6>
-                        <ul class="mb-0 small">
-                            <li><strong>Flows:</strong> <code>Source [amount] Target</code></li>
-                            <li><strong>Colors:</strong> <code>:Node Name #HexColor</code></li>
-                            <li><strong>Comments:</strong> <code>// Your comment here</code></li>
-                            <li><strong>Multi-word names:</strong> Use quotes if needed</li>
+                <div class="collapse mt-2" id="syntaxHelp">
+                    <div class="alert alert-info p-2 small">
+                        <strong>Syntax:</strong>
+                        <ul class="mb-0" style="font-size: 10px; padding-left: 15px;">
+                            <li><code>A [100] B</code></li>
+                            <li><code>:A #FF6B6B</code></li>
+                            <li><code>// Comment</code></li>
                         </ul>
-                        <hr>
-                        <p class="mb-0 small"><strong>Example:</strong></p>
-                        <pre class="mb-0 small">A [50] B
-B [30] C
-B [20] D
-:A #FF6B6B
-:B #4ECDC4</pre>
                     </div>
                 </div>
-            </div>
-        </div>
 
-        <!-- Settings Panel -->
-        <div class="card">
-            <div class="card-header">
-                <i class="bi bi-sliders"></i> Diagram Settings
-            </div>
-            <div class="card-body">
-                <div class="row g-3">
-                    <div class="col-md-6">
-                        <label for="diagram-size" class="form-label">Size</label>
-                        <select id="diagram-size" class="form-select form-select-sm">
-                            <option value="600">Small (600px)</option>
-                            <option value="800" selected>Medium (800px)</option>
-                            <option value="1000">Large (1000px)</option>
-                            <option value="1200">Extra Large (1200px)</option>
+                <!-- Settings Panel -->
+                <div class="mt-3">
+                    <small class="text-muted"><i class="bi bi-sliders"></i> Settings</small>
+                </div>
+                <div>
+                    <div class="mb-2">
+                        <label for="diagram-size" class="form-label small mb-1">Width</label>
+                        <select id="diagram-size" class="form-select form-select-sm" onchange="renderDiagram()">
+                            <option value="800">800px</option>
+                            <option value="1000">1000px</option>
+                            <option value="1200" selected>1200px</option>
+                            <option value="1400">1400px</option>
+                            <option value="1600">1600px</option>
                         </select>
                     </div>
-                    <div class="col-md-6">
-                        <label for="diagram-layout" class="form-label">Layout</label>
-                        <select id="diagram-layout" class="form-select form-select-sm">
+                    <div class="mb-2">
+                        <label for="diagram-layout" class="form-label small mb-1">Layout</label>
+                        <select id="diagram-layout" class="form-select form-select-sm" onchange="renderDiagram()">
                             <option value="horizontal" selected>Horizontal</option>
                             <option value="vertical">Vertical</option>
                         </select>
                     </div>
-                </div>
-                <div class="mt-3">
                     <button type="button" class="btn btn-primary btn-sm w-100" onclick="renderDiagram()">
-                        <i class="bi bi-arrow-clockwise"></i> Update Preview
+                        <i class="bi bi-arrow-clockwise"></i> Update
                     </button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Right Column: Preview -->
-    <div class="col-lg-6">
-        <div class="card sticky-top" style="top: 20px;">
+    <!-- Right Column: Preview (80%) -->
+    <div class="col-12 col-xl-10">
+        <div class="card border-0 rounded-0" style="height: calc(100vh - 200px);">
             <div class="card-header d-flex justify-content-between align-items-center">
                 <span><i class="bi bi-eye"></i> Live Preview</span>
                 <div>
@@ -159,7 +143,7 @@ B [20] D
                     </button>
                 </div>
             </div>
-            <div class="card-body bg-light" style="min-height: 500px;">
+            <div class="card-body bg-light p-2" style="height: calc(100vh - 250px); overflow: auto;">
                 <div id="diagram-preview" class="text-center">
                     <div class="text-muted py-5">
                         <i class="bi bi-diagram-3 display-1"></i>
@@ -366,10 +350,12 @@ function renderDiagram() {
 
         // Store original positions for dragging
         graph.nodes.forEach(d => {
-            d.origX = d.x0;
+            d.origX = d.x0;  // Current position (updates during drag)
             d.origY = d.y0;
-            d.lastX = d.x0;
+            d.lastX = d.x0;  // Last position (for shift key)
             d.lastY = d.y0;
+            d.trueOrigX = d.x0;  // True original (never changes, for reset)
+            d.trueOrigY = d.y0;
         });
 
         // Add helper layer (for drag guides)
@@ -455,14 +441,14 @@ function renderDiagram() {
                 // Remove shift hint
                 helperLayer.selectAll('text').remove();
 
-                // Determine dominant direction
-                const deltaX = Math.abs(newX - d.lastX);
-                const deltaY = Math.abs(newY - d.lastY);
+                // Determine dominant direction from start of drag
+                const deltaX = Math.abs(newX - d.origX);
+                const deltaY = Math.abs(newY - d.origY);
 
                 if (deltaX > deltaY) {
-                    newY = d.y0; // Constrain to horizontal
+                    newY = d.origY; // Constrain to horizontal
                 } else {
-                    newX = d.x0; // Constrain to vertical
+                    newX = d.origX; // Constrain to vertical
                 }
             }
 
@@ -472,24 +458,26 @@ function renderDiagram() {
             newX = Math.max(1, Math.min(width - nodeWidth - 1, newX));
             newY = Math.max(1, Math.min(height - nodeHeight - 1, newY));
 
-            // Update node position
+            // Calculate offset from original position
+            const dx = newX - d.origX;
+            const dy = newY - d.origY;
+
+            // Update node data position
             d.x0 = newX;
             d.x1 = newX + nodeWidth;
             d.y0 = newY;
             d.y1 = newY + nodeHeight;
 
-            // Update visuals
-            d3.select(event.sourceEvent.target.parentNode)
-                .select('rect')
-                .attr('x', d.x0)
-                .attr('y', d.y0);
+            // Apply transform to the node group
+            d3.select(this)
+                .attr('transform', `translate(${dx},${dy})`);
 
             // Recalculate and redraw links
             sankey.update(graph);
             linksGroup.selectAll('path')
                 .attr('d', d3.sankeyLinkHorizontal());
 
-            // Update labels
+            // Update label position
             labelsGroup.selectAll('text')
                 .filter(n => n === d)
                 .attr('x', d.x0 < width / 2 ? d.x1 + 6 : d.x0 - 6)
@@ -500,38 +488,55 @@ function renderDiagram() {
             // Clean up helpers
             helperLayer.selectAll('*').remove();
 
-            // Remember last position for shift-constrained drags
+            // Update original position to current position (makes this the new "home")
+            d.origX = d.x0;
+            d.origY = d.y0;
             d.lastX = d.x0;
             d.lastY = d.y0;
+
+            // Remove transform since we've made this the new origin
+            d3.select(this).attr('transform', null);
+
+            // Update the rect to the new position
+            d3.select(this).select('rect')
+                .attr('x', d.x0)
+                .attr('y', d.y0);
 
             // Final relayout
             sankey.update(graph);
             linksGroup.selectAll('path')
                 .attr('d', d3.sankeyLinkHorizontal());
 
-            // Update labels
+            // Update all labels
             labelsGroup.selectAll('text')
                 .attr('x', n => n.x0 < width / 2 ? n.x1 + 6 : n.x0 - 6)
                 .attr('y', n => (n.y1 + n.y0) / 2);
         }
 
-        // Double-click to reset
+        // Double-click to reset to original position
         function doubleClicked(event, d) {
             const nodeWidth = d.x1 - d.x0;
             const nodeHeight = d.y1 - d.y0;
 
-            d.x0 = d.origX;
-            d.y0 = d.origY;
-            d.x1 = d.origX + nodeWidth;
-            d.y1 = d.origY + nodeHeight;
-            d.lastX = d.origX;
-            d.lastY = d.origY;
+            // Reset to true original position
+            d.x0 = d.trueOrigX;
+            d.y0 = d.trueOrigY;
+            d.x1 = d.trueOrigX + nodeWidth;
+            d.y1 = d.trueOrigY + nodeHeight;
+            d.origX = d.trueOrigX;
+            d.origY = d.trueOrigY;
+            d.lastX = d.trueOrigX;
+            d.lastY = d.trueOrigY;
 
-            // Update node rectangle
-            d3.select(event.target)
+            // Find the node group and update its rect position
+            nodesGroup.selectAll('g')
+                .filter(n => n === d)
+                .attr('transform', null)
+                .select('rect')
                 .attr('x', d.x0)
                 .attr('y', d.y0);
 
+            // Update layout and labels
             sankey.update(graph);
             linksGroup.selectAll('path').attr('d', d3.sankeyLinkHorizontal());
             labelsGroup.selectAll('text')
