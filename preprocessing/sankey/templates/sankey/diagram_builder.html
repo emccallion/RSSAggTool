@@ -124,14 +124,24 @@ B [60] C
                                oninput="document.getElementById('height-value').textContent = this.value; renderDiagram()">
                     </div>
 
-                    <!-- Node Height Slider -->
+                    <!-- Node Width Slider -->
                     <div class="mb-3">
-                        <label for="node-height" class="form-label small mb-1">
-                            Node Width: <span id="node-height-value">15</span>px
+                        <label for="node-width" class="form-label small mb-1">
+                            Node Width: <span id="node-width-value">15</span>px
                         </label>
-                        <input type="range" class="form-range" id="node-height"
+                        <input type="range" class="form-range" id="node-width"
                                min="1" max="50" step="1" value="15"
-                               oninput="document.getElementById('node-height-value').textContent = this.value; renderDiagram()">
+                               oninput="document.getElementById('node-width-value').textContent = this.value; renderDiagram()">
+                    </div>
+
+                    <!-- Node Padding Slider (affects height) -->
+                    <div class="mb-3">
+                        <label for="node-padding" class="form-label small mb-1">
+                            Node Spacing: <span id="node-padding-value">10</span>px
+                        </label>
+                        <input type="range" class="form-range" id="node-padding"
+                               min="1" max="50" step="1" value="10"
+                               oninput="document.getElementById('node-padding-value').textContent = this.value; renderDiagram()">
                     </div>
 
                     <!-- Show Nodes Toggle -->
@@ -458,7 +468,8 @@ function renderDiagram() {
         const showNodes = document.getElementById('show-nodes').checked;
         const showLabels = document.getElementById('show-labels').checked;
         const labelPosition = document.querySelector('input[name="label-position"]:checked').value;
-        const nodeHeight = parseInt(document.getElementById('node-height').value) || 15;
+        const nodeWidth = parseInt(document.getElementById('node-width').value) || 15;
+        const nodePadding = parseInt(document.getElementById('node-padding').value) || 10;
 
         // Clear preview and create SVG
         preview.innerHTML = '';
@@ -476,8 +487,8 @@ function renderDiagram() {
         // Create sankey generator
         // If nodes are hidden, use nodeWidth of 0 to close gaps
         const sankey = d3.sankey()
-            .nodeWidth(showNodes ? nodeHeight : 0)
-            .nodePadding(10)
+            .nodeWidth(showNodes ? nodeWidth : 0)
+            .nodePadding(nodePadding)
             .extent([[1, 5], [width - 1, height - 5]]);
 
         // Prepare nodes and links for d3-sankey
@@ -875,7 +886,8 @@ document.getElementById('save-diagram-form').addEventListener('submit', function
     const settings = {
         width: document.getElementById('diagram-width').value,
         height: document.getElementById('diagram-height').value,
-        nodeHeight: document.getElementById('node-height').value,
+        nodeWidth: document.getElementById('node-width').value,
+        nodePadding: document.getElementById('node-padding').value,
         showNodes: document.getElementById('show-nodes').checked,
         showLabels: document.getElementById('show-labels').checked,
         labelPosition: document.querySelector('input[name="label-position"]:checked').value
@@ -953,9 +965,14 @@ document.addEventListener('DOMContentLoaded', function() {
             document.getElementById('diagram-height').value = settings.height;
             document.getElementById('height-value').textContent = settings.height;
         }
-        if (settings.nodeHeight) {
-            document.getElementById('node-height').value = settings.nodeHeight;
-            document.getElementById('node-height-value').textContent = settings.nodeHeight;
+        // Handle both new (nodeWidth) and old (nodeHeight) parameter names
+        const nodeWidthValue = settings.nodeWidth || settings.nodeHeight || 15;
+        document.getElementById('node-width').value = nodeWidthValue;
+        document.getElementById('node-width-value').textContent = nodeWidthValue;
+
+        if (settings.nodePadding) {
+            document.getElementById('node-padding').value = settings.nodePadding;
+            document.getElementById('node-padding-value').textContent = settings.nodePadding;
         }
         if (typeof settings.showNodes !== 'undefined') {
             document.getElementById('show-nodes').checked = settings.showNodes;
