@@ -1,0 +1,26 @@
+{% comment %}
+Reusable statistics card component.
+
+Usage:
+  {% include 'components/stat_card.html' with value=100 label='Total' variant='primary' icon='bi-newspaper' %}
+
+Parameters:
+  - value: The numeric value to display
+  - label: The label text
+  - variant: primary|info|success|warning|danger (default: primary)
+  - icon: Optional Bootstrap icon class
+{% endcomment %}
+
+<div class="col-md-3 mb-3">
+    <div class="card stat-card stat-card-{{ variant|default:'primary' }}">
+        <div class="card-body text-center">
+            {% if icon %}
+            <div class="stat-icon mb-2">
+                <i class="bi {{ icon }}"></i>
+            </div>
+            {% endif %}
+            <h3 class="stat-number">{{ value }}</h3>
+            <p class="stat-label">{{ label }}</p>
+        </div>
+    </div>
+</div>

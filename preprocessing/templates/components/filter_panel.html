@@ -1,0 +1,46 @@
+{% comment %}
+Reusable filter panel component.
+
+Usage:
+  {% include 'components/filter_panel.html' with form=filter_form action_url=request.path %}
+
+Parameters:
+  - form: The filter form instance
+  - action_url: The form action URL (default: current path)
+  - show_sort: Whether to show sort field (default: true)
+{% endcomment %}
+
+<div class="card mb-3">
+    <div class="card-body">
+        <h5 class="card-title">Filters & Sort</h5>
+        <form method="get" action="{{ action_url|default:request.path }}">
+            <div class="row g-3">
+                {% for field in form %}
+                    {% if field.name != 'sort' or show_sort|default:True %}
+                    <div class="col-md-{{ field.field.widget.attrs.col_width|default:'3' }}">
+                        {{ field.label_tag }}
+                        {{ field }}
+                        {% if field.errors %}
+                            <div class="invalid-feedback d-block">
+                                {{ field.errors }}
+                            </div>
+                        {% endif %}
+                    </div>
+                    {% endif %}
+                {% endfor %}
+            </div>
+            <div class="row g-3 mt-1">
+                <div class="col-md-2 d-flex align-items-end">
+                    <button type="submit" class="btn btn-primary w-100">
+                        <i class="bi bi-funnel"></i> Apply
+                    </button>
+                </div>
+                <div class="col-md-2 d-flex align-items-end">
+                    <a href="{{ action_url|default:request.path }}" class="btn btn-secondary w-100">
+                        <i class="bi bi-x-circle"></i> Clear
+                    </a>
+                </div>
+            </div>
+        </form>
+    </div>
+</div>
